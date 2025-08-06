@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fantasy Football 2025 PPR Cheat Sheet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* Dark Gray */
+        }
+        .loader {
+            border-top-color: #3498db; /* Blue */
+            -webkit-animation: spin 1s linear infinite;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .filter-btn.active, .profile-tab.active {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        .profile-tab.active {
+             border-bottom: 2px solid #3b82f6;
+        }
+        .stat-table th {
+            background-color: #1f2937;
+        }
+        .stat-table tr:nth-child(even) {
+            background-color: #1f2937;
+        }
+        .stat-table tr:hover {
+            background-color: #374151;
+        }
+        .player-link {
+            cursor: pointer;
+            color: #60a5fa; /* Lighter Blue */
+            font-weight: 500;
+        }
+        .player-link:hover {
+            text-decoration: underline;
+            color: #93c5fd; /* Even Lighter Blue */
+        }
+        .stat-card {
+            background-color: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="text-gray-200 min-h-screen p-4 sm:p-6 lg:p-8">
+
+    <div class="w-full max-w-6xl mx-auto space-y-8">
+        <!-- Main Page View -->
+        <div id="main-page">
+            <header class="text-center">
+                <h1 class="text-4xl md:text-5xl font-bold text-white">Fantasy Football 2025 - Full PPR Cheat Sheet</h1>
+                <p class="text-gray-400 mt-2 text-lg">Click a player for a detailed profile and 2025 schedule.</p>
+            </header>
+            <div class="controls">
+                <input type="text" id="search-bar" onkeyup="applyFilters()" placeholder="Search for a player...">
+                <div id="filters">
+                    <button class="filter-btn active" onclick="setActiveFilter('ALL')">ALL</button>
+                    <button class="filter-btn" onclick="setActiveFilter('QB')">QB</button>
+                    <button class="filter-btn" onclick="setActiveFilter('RB')">RB</button>
+                    <button class="filter-btn" onclick="setActiveFilter('WR')">WR</button>
+                    <button class="filter-btn" onclick="setActiveFilter('TE')">TE</button>
+                    <button class="filter-btn" onclick="setActiveFilter('K')">K</button>
+                    <button class="filter-btn" onclick="setActiveFilter('DST')">DST</button>
+                </div>
+            </div>
+            <main>
+                <table id="player-table">
+                    <thead>
+                        <tr>
+                            <th class="rank">OVR</th>
+                            <th>Player</th>
+                            <th>Pos</th>
+                            <th class="pos-rank">POS RK</th>
+                            <th>Bye</th>
+                            <th>2024 Key Stats</th>
+                        </tr>
+                    </thead>
+                    <tbody id="player-data">
+                        </tbody>
+                </table>
+            </main>
+        </div>
+
+        <!-- Detail Page View (Player Profile) -->
+        <div id="detail-page" class="hidden">
+            <button id="back-btn" class="mb-6 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg flex items-center transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                Back to Cheat Sheet
+            </button>
+            <div id="player-header" class="text-center mb-6"></div>
+            
+            <!-- Profile Tabs -->
+            <div class="mb-4 flex justify-center border-b border-gray-700">
+                <button class="profile-tab py-2 px-4 text-gray-400 hover:text-white border-b-2 border-transparent hover:border-blue-500 transition" data-tab="key-stats">Key Stats</button>
+                <button class="profile-tab py-2 px-4 text-gray-400 hover:text-white border-b-2 border-transparent hover:border-blue-500 transition" data-tab="schedule">2025 Schedule</button>
+                <button class="profile-tab py-2 px-4 text-gray-400 hover:text-white border-b-2 border-transparent hover:border-blue-500 transition" data-tab="season-stats">Season Stats</button>
+                <button class="profile-tab py-2 px-4 text-gray-400 hover:text-white border-b-2 border-transparent hover:border-blue-500 transition" data-tab="game-log">Game Log</button>
+            </div>
+
+            <!-- Tab Content -->
+            <div id="key-stats-content" class="tab-content"></div>
+            <div id="schedule-content" class="tab-content hidden"></div>
+            <div id="season-stats-content" class="tab-content hidden"></div>
+            <div id="game-log-content" class="tab-content hidden"></div>
+        </div>
+        
+        <!-- Loader -->
+        <div id="loader-container" class="hidden text-center py-10">
+            <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-600 h-32 w-32 mx-auto"></div>
+            <p class="mt-4 text-lg text-gray-400">Fetching player data...</p>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error-message-container" class="hidden bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-lg text-center" role="alert">
+            <p id="error-text"></p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Element References
+            const mainPage = document.getElementById('main-page');
+            const detailPage = document.getElementById('detail-page');
+            const searchBar = document.getElementById('search-bar');
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const playerTableBody = document.getElementById('player-data');
+            const playerHeader = document.getElementById('player-header');
+            const backBtn = document.getElementById('back-btn');
+            const loaderContainer = document.getElementById('loader-container');
+            const errorMessageContainer = document.getElementById('error-message-container');
+            const errorText = document.getElementById('error-text');
+            const profileTabs = document.querySelectorAll('.profile-tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            let currentPositionFilter = 'ALL';
+            let players = []; 
+
+            const TEAM_ABBREVIATIONS = { 'ARI': 'Arizona Cardinals', 'ATL': 'Atlanta Falcons', 'BAL': 'Baltimore Ravens', 'BUF': 'Buffalo Bills', 'CAR': 'Carolina Panthers', 'CHI': 'Chicago Bears', 'CIN': 'Cincinnati Bengals', 'CLE': 'Cleveland Browns', 'DAL': 'Dallas Cowboys', 'DEN': 'Denver Broncos', 'DET': 'Detroit Lions', 'GB': 'Green Bay Packers', 'HOU': 'Houston Texans', 'IND': 'Indianapolis Colts', 'JAX': 'Jacksonville Jaguars', 'KC': 'Kansas City Chiefs', 'LV': 'Las Vegas Raiders', 'LAC': 'Los Angeles Chargers', 'LAR': 'Los Angeles Rams', 'MIA': 'Miami Dolphins', 'MIN': 'Minnesota Vikings', 'NE': 'New England Patriots', 'NO': 'New Orleans Saints', 'NYG': 'New York Giants', 'NYJ': 'New York Jets', 'PHI': 'Philadelphia Eagles', 'PIT': 'Pittsburgh Steelers', 'SF': 'San Francisco 49ers', 'SEA': 'Seattle Seahawks', 'TB': 'Tampa Bay Buccaneers', 'TEN': 'Tennessee Titans', 'WAS': 'Washington Commanders' };
+            const ESPN_TEAM_NAMES = { 'ARI': 'ari', 'ATL': 'atl', 'BAL': 'bal', 'BUF': 'buf', 'CAR': 'car', 'CHI': 'chi', 'CIN': 'cin', 'CLE': 'cle', 'DAL': 'dal', 'DEN': 'den', 'DET': 'det', 'GB': 'gb', 'HOU': 'hou', 'IND': 'ind', 'JAX': 'jax', 'KC': 'kc', 'LV': 'lv', 'LAC': 'lac', 'LAR': 'lar', 'MIA': 'mia', 'MIN': 'min', 'NE': 'ne', 'NO': 'no', 'NYG': 'nyg', 'NYJ': 'nyj', 'PHI': 'phi', 'PIT': 'pit', 'SF': 'sf', 'SEA': 'sea', 'TB': 'tb', 'TEN': 'ten', 'WAS': 'wsh' };
+
+            const playersRaw = [
+                {"rank":1,"name":"Christian McCaffrey","team":"San Francisco 49ers","position":"RB","bye":14,"stats":"1459 Rush Yds, 14 TD, 67 Rec, 539 Rec Yds, 7 TD"},
+                {"rank":2,"name":"CeeDee Lamb","team":"Dallas Cowboys","position":"WR","bye":10,"stats":"135 Rec, 1749 Yds, 12 TD"},
+                {"rank":3,"name":"Ja'Marr Chase","team":"Cincinnati Bengals","position":"WR","bye":10,"stats":"100 Rec, 1216 Yds, 7 TD"},
+                {"rank":4,"name":"Tyreek Hill","team":"Miami Dolphins","position":"WR","bye":12,"stats":"119 Rec, 1799 Yds, 13 TD"},
+                {"rank":5,"name":"Amon-Ra St. Brown","team":"Detroit Lions","position":"WR","bye":8,"stats":"119 Rec, 1515 Yds, 10 TD"},
+                {"rank":6,"name":"Justin Jefferson","team":"Minnesota Vikings","position":"WR","bye":6,"stats":"107 Rec, 1600 Yds, 9 TD"},
+                {"rank":7,"name":"Breece Hall","team":"New York Jets","position":"RB","bye":9,"stats":"994 Rush Yds, 5 TD, 76 Rec, 591 Rec Yds, 4 TD"},
+                {"rank":8,"name":"Bijan Robinson","team":"Atlanta Falcons","position":"RB","bye":5,"stats":"976 Rush Yds, 4 TD, 58 Rec, 487 Rec Yds, 4 TD"},
+                {"rank":9,"name":"Garrett Wilson","team":"New York Jets","position":"WR","bye":9,"stats":"95 Rec, 1042 Yds, 3 TD"},
+                {"rank":10,"name":"A.J. Brown","team":"Philadelphia Eagles","position":"WR","bye":9,"stats":"106 Rec, 1456 Yds, 7 TD"},
+                {"rank":11,"name":"Jahmyr Gibbs","team":"Detroit Lions","position":"RB","bye":8,"stats":"945 Rush Yds, 10 TD, 52 Rec, 316 Rec Yds, 1 TD"},
+                {"rank":12,"name":"Saquon Barkley","team":"Philadelphia Eagles","position":"RB","bye":9,"stats":"2005 Rush Yds, 13 TD, 33 Rec, 280 Rec Yds, 4 TD"},
+                {"rank":13,"name":"Kyren Williams","team":"Los Angeles Rams","position":"RB","bye":6,"stats":"1144 Rush Yds, 12 TD, 32 Rec, 206 Rec Yds, 3 TD"},
+                {"rank":14,"name":"Chris Olave","team":"New Orleans Saints","position":"WR","bye":11,"stats":"87 Rec, 1123 Yds, 5 TD"},
+                {"rank":15,"name":"Marvin Harrison Jr.","team":"Arizona Cardinals","position":"WR","bye":11,"stats":"88 Rec, 1212 Yds, 10 TD"},
+                {"rank":16,"name":"Jonathan Taylor","team":"Indianapolis Colts","position":"RB","bye":11,"stats":"741 Rush Yds, 7 TD, 19 Rec, 153 Rec Yds, 1 TD"},
+                {"rank":17,"name":"Drake London","team":"Atlanta Falcons","position":"WR","bye":5,"stats":"69 Rec, 905 Yds, 2 TD"},
+                {"rank":18,"name":"Travis Etienne Jr.","team":"Jacksonville Jaguars","position":"RB","bye":12,"stats":"1008 Rush Yds, 11 TD, 58 Rec, 476 Rec Yds, 1 TD"},
+                {"rank":19,"name":"Jaylen Waddle","team":"Miami Dolphins","position":"WR","bye":12,"stats":"72 Rec, 1014 Yds, 4 TD"},
+                {"rank":20,"name":"Davante Adams","team":"Las Vegas Raiders","position":"WR","bye":10,"stats":"103 Rec, 1144 Yds, 8 TD"},
+                {"rank":21,"name":"De'Von Achane","team":"Miami Dolphins","position":"RB","bye":12,"stats":"800 Rush Yds, 8 TD, 28 Rec, 197 Rec Yds, 3 TD"},
+                {"rank":22,"name":"Nico Collins","team":"Houston Texans","position":"WR","bye":6,"stats":"80 Rec, 1297 Yds, 8 TD"},
+                {"rank":23,"name":"Michael Pittman Jr.","team":"Indianapolis Colts","position":"WR","bye":11,"stats":"109 Rec, 1152 Yds, 4 TD"},
+                {"rank":24,"name":"Sam LaPorta","team":"Detroit Lions","position":"TE","bye":8,"stats":"86 Rec, 889 Yds, 10 TD"},
+                {"rank":25,"name":"Josh Allen","team":"Buffalo Bills","position":"QB","bye":7,"stats":"4306 Pass Yds, 29 TD, 524 Rush Yds, 15 TD"},
+                {"rank":26,"name":"Derrick Henry","team":"Baltimore Ravens","position":"RB","bye":7,"stats":"1167 Rush Yds, 12 TD, 28 Rec, 214 Rec Yds, 0 TD"},
+                {"rank":27,"name":"DJ Moore","team":"Chicago Bears","position":"WR","bye":7,"stats":"96 Rec, 1364 Yds, 8 TD"},
+                {"rank":28,"name":"Isiah Pacheco","team":"Kansas City Chiefs","position":"RB","bye":6,"stats":"935 Rush Yds, 7 TD, 44 Rec, 244 Rec Yds, 2 TD"},
+                {"rank":29,"name":"Brandon Aiyuk","team":"San Francisco 49ers","position":"WR","bye":14,"stats":"75 Rec, 1342 Yds, 7 TD"},
+                {"rank":30,"name":"Jalen Hurts","team":"Philadelphia Eagles","position":"QB","bye":9,"stats":"3858 Pass Yds, 23 TD, 605 Rush Yds, 15 TD"},
+                {"rank":31,"name":"DeVonta Smith","team":"Philadelphia Eagles","position":"WR","bye":9,"stats":"81 Rec, 1066 Yds, 7 TD"},
+                {"rank":32,"name":"Travis Kelce","team":"Kansas City Chiefs","position":"TE","bye":6,"stats":"93 Rec, 984 Yds, 5 TD"},
+                {"rank":33,"name":"Patrick Mahomes","team":"Kansas City Chiefs","position":"QB","bye":6,"stats":"4183 Pass Yds, 27 TD, 389 Rush Yds, 0 TD"},
+                {"rank":34,"name":"James Cook","team":"Buffalo Bills","position":"RB","bye":7,"stats":"1122 Rush Yds, 2 TD, 44 Rec, 445 Rec Yds, 4 TD"},
+                {"rank":35,"name":"Rashee Rice","team":"Kansas City Chiefs","position":"WR","bye":6,"stats":"79 Rec, 938 Yds, 7 TD"},
+                {"rank":36,"name":"George Pickens","team":"Dallas Cowboys","position":"WR","bye":10,"stats":"63 Rec, 1140 Yds, 5 TD"},
+                {"rank":37,"name":"Chris Godwin","team":"Tampa Bay Buccaneers","position":"WR","bye":11,"stats":"83 Rec, 1024 Yds, 2 TD"},
+                {"rank":38,"name":"Lamar Jackson","team":"Baltimore Ravens","position":"QB","bye":7,"stats":"3678 Pass Yds, 24 TD, 821 Rush Yds, 5 TD"},
+                {"rank":39,"name":"Tee Higgins","team":"Cincinnati Bengals","position":"WR","bye":10,"stats":"42 Rec, 656 Yds, 5 TD"},
+                {"rank":40,"name":"Zamir White","team":"Las Vegas Raiders","position":"RB","bye":10,"stats":"451 Rush Yds, 1 TD, 15 Rec, 98 Rec Yds, 0 TD"},
+                {"rank":41,"name":"Tank Dell","team":"Houston Texans","position":"WR","bye":6,"stats":"47 Rec, 709 Yds, 7 TD"},
+                {"rank":42,"name":"Josh Jacobs","team":"Green Bay Packers","position":"RB","bye":5,"stats":"805 Rush Yds, 6 TD, 37 Rec, 296 Rec Yds, 0 TD"},
+                {"rank":43,"name":"Jordan Addison","team":"Minnesota Vikings","position":"WR","bye":6,"stats":"70 Rec, 911 Yds, 10 TD"},
+                {"rank":44,"name":"Malik Nabers","team":"New York Giants","position":"WR","bye":11,"stats":"109 Rec, 1204 Yds, 7 TD"},
+                {"rank":45,"name":"Zay Flowers","team":"Baltimore Ravens","position":"WR","bye":7,"stats":"77 Rec, 858 Yds, 5 TD"},
+                {"rank":46,"name":"Kyle Pitts","team":"Atlanta Falcons","position":"TE","bye":5,"stats":"53 Rec, 667 Yds, 3 TD"},
+                {"rank":47,"name":"Rachaad White","team":"Tampa Bay Buccaneers","position":"RB","bye":11,"stats":"990 Rush Yds, 6 TD, 64 Rec, 549 Rec Yds, 3 TD"},
+                {"rank":48,"name":"Jayden Reed","team":"Green Bay Packers","position":"WR","bye":5,"stats":"64 Rec, 793 Yds, 8 TD"},
+                {"rank":49,"name":"Joe Mixon","team":"Houston Texans","position":"RB","bye":6,"stats":"1035 Rush Yds, 9 TD, 52 Rec, 376 Rec Yds, 3 TD"},
+                {"rank":50,"name":"Anthony Richardson","team":"Indianapolis Colts","position":"QB","bye":11,"stats":"577 Pass Yds, 3 TD, 136 Rush Yds, 4 TD"},
+                {"rank":51,"name":"Christian Kirk","team":"Houston Texans","position":"WR","bye":6,"stats":"57 Rec, 787 Yds, 3 TD"},
+                {"rank":52,"name":"Evan Engram","team":"Jacksonville Jaguars","position":"TE","bye":12,"stats":"114 Rec, 963 Yds, 4 TD"},
+                {"rank":53,"name":"C.J. Stroud","team":"Houston Texans","position":"QB","bye":6,"stats":"4108 Pass Yds, 23 TD, 167 Rush Yds, 3 TD"},
+                {"rank":54,"name":"George Kittle","team":"San Francisco 49ers","position":"TE","bye":14,"stats":"65 Rec, 1020 Yds, 6 TD"},
+                {"rank":55,"name":"Terry McLaurin","team":"Washington Commanders","position":"WR","bye":14,"stats":"79 Rec, 1002 Yds, 4 TD"},
+                {"rank":56,"name":"Kenneth Walker III","team":"Seattle Seahawks","position":"RB","bye":8,"stats":"905 Rush Yds, 8 TD, 29 Rec, 259 Rec Yds, 1 TD"},
+                {"rank":57,"name":"Cooper Kupp","team":"Los Angeles Rams","position":"WR","bye":6,"stats":"59 Rec, 737 Yds, 5 TD"},
+                {"rank":58,"name":"Alvin Kamara","team":"New Orleans Saints","position":"RB","bye":11,"stats":"694 Rush Yds, 5 TD, 75 Rec, 466 Rec Yds, 1 TD"},
+                {"rank":59,"name":"Joe Burrow","team":"Cincinnati Bengals","position":"QB","bye":10,"stats":"4918 Pass Yds, 43 TD, 201 Rush Yds, 2 TD"},
+                {"rank":60,"name":"Deebo Samuel","team":"Washington Commanders","position":"WR","bye":14,"stats":"60 Rec, 892 Yds, 7 TD, 225 Rush Yds, 5 TD"},
+                {"rank":61,"name":"Jake Ferguson","team":"Dallas Cowboys","position":"TE","bye":10,"stats":"71 Rec, 761 Yds, 5 TD"},
+                {"rank":62,"name":"David Montgomery","team":"Detroit Lions","position":"RB","bye":8,"stats":"1015 Rush Yds, 13 TD, 16 Rec, 117 Rec Yds, 0 TD"},
+                {"rank":63,"name":"Brian Thomas Jr.","team":"Jacksonville Jaguars","position":"WR","bye":12,"stats":"87 Rec, 1282 Yds, 10 TD"},
+                {"rank":64,"name":"James Conner","team":"Arizona Cardinals","position":"RB","bye":11,"stats":"1040 Rush Yds, 7 TD, 27 Rec, 165 Rec Yds, 2 TD"},
+                {"rank":65,"name":"Stefon Diggs","team":"Houston Texans","position":"WR","bye":6,"stats":"107 Rec, 1183 Yds, 8 TD"},
+                {"rank":66,"name":"Dak Prescott","team":"Dallas Cowboys","position":"QB","bye":10,"stats":"4516 Pass Yds, 36 TD, 242 Rush Yds, 2 TD"},
+                {"rank":67,"name":"Dalton Kincaid","team":"Buffalo Bills","position":"TE","bye":7,"stats":"73 Rec, 673 Yds, 2 TD"},
+                {"rank":68,"name":"Jaxon Smith-Njigba","team":"Seattle Seahawks","position":"WR","bye":8,"stats":"63 Rec, 628 Yds, 4 TD"},
+                {"rank":69,"name":"Amari Cooper","team":"Cleveland Browns","position":"WR","bye":9,"stats":"72 Rec, 1250 Yds, 5 TD"},
+                {"rank":70,"name":"Mark Andrews","team":"Baltimore Ravens","position":"TE","bye":7,"stats":"45 Rec, 544 Yds, 6 TD"},
+                {"rank":71,"name":"Trey Palmer","team":"Tampa Bay Buccaneers","position":"WR","bye":11,"stats":"39 Rec, 581 Yds, 3 TD"},
+                {"rank":72,"name":"Jordan Love","team":"Green Bay Packers","position":"QB","bye":5,"stats":"4159 Pass Yds, 32 TD, 247 Rush Yds, 4 TD"},
+                {"rank":73,"name":"Tony Pollard","team":"Tennessee Titans","position":"RB","bye":10,"stats":"1005 Rush Yds, 6 TD, 55 Rec, 311 Rec Yds, 0 TD"},
+                {"rank":74,"name":"Raheem Mostert","team":"Miami Dolphins","position":"RB","bye":12,"stats":"1012 Rush Yds, 18 TD, 25 Rec, 175 Rec Yds, 3 TD"},
+                {"rank":75,"name":"Xavier Worthy","team":"Kansas City Chiefs","position":"WR","bye":6,"stats":"68 Rec, 850 Yds, 7 TD"},
+                {"rank":76,"name":"Gus Edwards","team":"Los Angeles Chargers","position":"RB","bye":5,"stats":"810 Rush Yds, 13 TD, 12 Rec, 180 Rec Yds, 0 TD"},
+                {"rank":77,"name":"Calvin Ridley","team":"Tennessee Titans","position":"WR","bye":10,"stats":"76 Rec, 1016 Yds, 8 TD"},
+                {"rank":78,"name":"Brock Bowers","team":"Las Vegas Raiders","position":"TE","bye":10,"stats":"112 Rec, 1194 Yds, 5 TD"},
+                {"rank":79,"name":"Kyler Murray","team":"Arizona Cardinals","position":"QB","bye":11,"stats":"1799 Pass Yds, 10 TD, 244 Rush Yds, 3 TD"},
+                {"rank":80,"name":"David Njoku","team":"Cleveland Browns","position":"TE","bye":9,"stats":"81 Rec, 882 Yds, 6 TD"},
+                {"rank":81,"name":"Diontae Johnson","team":"Carolina Panthers","position":"WR","bye":11,"stats":"51 Rec, 717 Yds, 5 TD"},
+                {"rank":82,"name":"Rhamondre Stevenson","team":"New England Patriots","position":"RB","bye":14,"stats":"619 Rush Yds, 4 TD, 38 Rec, 238 Rec Yds, 0 TD"},
+                {"rank":83,"name":"Ladd McConkey","team":"Los Angeles Chargers","position":"WR","bye":5,"stats":"82 Rec, 1149 Yds, 7 TD"},
+                {"rank":84,"name":"Jaylen Wright","team":"Miami Dolphins","position":"RB","bye":12,"stats":"550 Rush Yds, 4 TD, 20 Rec, 150 Rec Yds, 1 TD"},
+                {"rank":85,"name":"Tua Tagovailoa","team":"Miami Dolphins","position":"QB","bye":12,"stats":"4624 Pass Yds, 29 TD, 74 Rush Yds, 0 TD"},
+                {"rank":86,"name":"Najee Harris","team":"Pittsburgh Steelers","position":"RB","bye":5,"stats":"1035 Rush Yds, 8 TD, 29 Rec, 170 Rec Yds, 0 TD"},
+                {"rank":87,"name":"Mike Evans","team":"Tampa Bay Buccaneers","position":"WR","bye":11,"stats":"79 Rec, 1255 Yds, 13 TD"},
+                {"rank":88,"name":"Jameson Williams","team":"Detroit Lions","position":"WR","bye":8,"stats":"24 Rec, 354 Yds, 2 TD"},
+                {"rank":89,"name":"Pat Freiermuth","team":"Pittsburgh Steelers","position":"TE","bye":5,"stats":"32 Rec, 308 Yds, 2 TD"},
+                {"rank":90,"name":"Kirk Cousins","team":"Atlanta Falcons","position":"QB","bye":5,"stats":"2331 Pass Yds, 18 TD, 57 Rush Yds, 1 TD"},
+                {"rank":91,"name":"Antonio Gibson","team":"New England Patriots","position":"RB","bye":14,"stats":"265 Rush Yds, 1 TD, 48 Rec, 389 Rec Yds, 2 TD"},
+                {"rank":92,"name":"Christian Watson","team":"Green Bay Packers","position":"WR","bye":5,"stats":"28 Rec, 422 Yds, 5 TD"},
+                {"rank":93,"name":"Jared Goff","team":"Detroit Lions","position":"QB","bye":8,"stats":"4575 Pass Yds, 30 TD, 21 Rush Yds, 2 TD"},
+                {"rank":94,"name":"Luke Musgrave","team":"Green Bay Packers","position":"TE","bye":5,"stats":"34 Rec, 352 Yds, 1 TD"},
+                {"rank":95,"name":"Jerry Jeudy","team":"Cleveland Browns","position":"WR","bye":9,"stats":"54 Rec, 758 Yds, 2 TD"},
+                {"rank":96,"name":"Cole Kmet","team":"Chicago Bears","position":"TE","bye":7,"stats":"73 Rec, 719 Yds, 6 TD"},
+                {"rank":97,"name":"Brock Purdy","team":"San Francisco 49ers","position":"QB","bye":14,"stats":"4280 Pass Yds, 31 TD, 144 Rush Yds, 2 TD"},
+                {"rank":98,"name":"Jonathon Brooks","team":"Carolina Panthers","position":"RB","bye":11,"stats":"850 Rush Yds, 5 TD, 30 Rec, 210 Yds, 1 TD"},
+                {"rank":99,"name":"Courtland Sutton","team":"Denver Broncos","position":"WR","bye":12,"stats":"59 Rec, 772 Yds, 10 TD"},
+                {"rank":100,"name":"Baker Mayfield","team":"Tampa Bay Buccaneers","position":"QB","bye":11,"stats":"4044 Pass Yds, 28 TD, 163 Rush Yds, 1 TD"},
+                {"rank":101,"name":"Tucker Kraft","team":"Green Bay Packers","position":"TE","bye":5,"stats":"31 Rec, 355 Yds, 2 TD"},
+                {"rank":102,"name":"Blake Corum","team":"Los Angeles Rams","position":"RB","bye":6,"stats":"550 Rush Yds, 6 TD, 15 Rec, 100 Yds, 0 TD"},
+                {"rank":103,"name":"Rashid Shaheed","team":"New Orleans Saints","position":"WR","bye":11,"stats":"46 Rec, 719 Yds, 5 TD"},
+                {"rank":104,"name":"T.J. Hockenson","team":"Minnesota Vikings","position":"TE","bye":6,"stats":"95 Rec, 960 Yds, 5 TD"},
+                {"rank":105,"name":"Trevor Lawrence","team":"Jacksonville Jaguars","position":"QB","bye":12,"stats":"4016 Pass Yds, 21 TD, 334 Rush Yds, 4 TD"},
+                {"rank":106,"name":"Trey Benson","team":"Arizona Cardinals","position":"RB","bye":11,"stats":"650 Rush Yds, 4 TD, 20 Rec, 150 Yds, 1 TD"},
+                {"rank":107,"name":"Romeo Doubs","team":"Green Bay Packers","position":"WR","bye":5,"stats":"59 Rec, 674 Yds, 8 TD"},
+                {"rank":108,"name":"Cade Otton","team":"Tampa Bay Buccaneers","position":"TE","bye":11,"stats":"47 Rec, 455 Yds, 4 TD"},
+                {"rank":109,"name":"Matthew Stafford","team":"Los Angeles Rams","position":"QB","bye":6,"stats":"3965 Pass Yds, 24 TD, 65 Rush Yds, 0 TD"},
+                {"rank":110,"name":"Chuba Hubbard","team":"Carolina Panthers","position":"RB","bye":11,"stats":"902 Rush Yds, 5 TD, 39 Rec, 233 Rec Yds, 0 TD"},
+                {"rank":111,"name":"Jahan Dotson","team":"Washington Commanders","position":"WR","bye":14,"stats":"49 Rec, 518 Yds, 4 TD"},
+                {"rank":112,"name":"Darren Waller","team":"New York Giants","position":"TE","bye":11,"stats":"52 Rec, 552 Yds, 1 TD"},
+                {"rank":113,"name":"Jayden Daniels","team":"Washington Commanders","position":"QB","bye":14,"stats":"3568 Pass Yds, 25 TD, 891 Rush Yds, 6 TD"},
+                {"rank":114,"name":"Roschon Johnson","team":"Chicago Bears","position":"RB","bye":7,"stats":"352 Rush Yds, 2 TD, 34 Rec, 209 Rec Yds, 0 TD"},
+                {"rank":115,"name":"Adam Thielen","team":"Carolina Panthers","position":"WR","bye":11,"stats":"103 Rec, 1014 Yds, 4 TD"},
+                {"rank":116,"name":"Juwan Johnson","team":"New Orleans Saints","position":"TE","bye":11,"stats":"37 Rec, 368 Yds, 4 TD"},
+                {"rank":117,"name":"Caleb Williams","team":"Chicago Bears","position":"QB","bye":7,"stats":"3541 Pass Yds, 20 TD, 466 Rush Yds, 2 TD"},
+                {"rank":118,"name":"Devin Singletary","team":"New York Giants","position":"RB","bye":11,"stats":"898 Rush Yds, 4 TD, 30 Rec, 191 Rec Yds, 0 TD"},
+                {"rank":119,"name":"Demario Douglas","team":"New England Patriots","position":"WR","bye":14,"stats":"49 Rec, 561 Yds, 0 TD"},
+                {"rank":120,"name":"Tyler Lockett","team":"Seattle Seahawks","position":"WR","bye":8,"stats":"79 Rec, 894 Yds, 5 TD"},
+                {"rank":121,"name":"Daniel Jones","team":"New York Giants","position":"QB","bye":11,"stats":"1157 Pass Yds, 2 TD, 206 Rush Yds, 1 TD"},
+                {"rank":122,"name":"Tyjae Spears","team":"Tennessee Titans","position":"RB","bye":10,"stats":"449 Rush Yds, 2 TD, 52 Rec, 385 Rec Yds, 1 TD"},
+                {"rank":123,"name":"Gabriel Davis","team":"Jacksonville Jaguars","position":"WR","bye":12,"stats":"45 Rec, 746 Yds, 7 TD"},
+                {"rank":124,"name":"Aaron Jones","team":"Minnesota Vikings","position":"RB","bye":6,"stats":"656 Rush Yds, 2 TD, 30 Rec, 233 Rec Yds, 1 TD"},
+                {"rank":125,"name":"Quentin Johnston","team":"Los Angeles Chargers","position":"WR","bye":5,"stats":"38 Rec, 431 Yds, 2 TD"},
+                {"rank":126,"name":"Jakobi Meyers","team":"Las Vegas Raiders","position":"WR","bye":10,"stats":"71 Rec, 807 Yds, 8 TD"},
+                {"rank":127,"name":"Ezekiel Elliott","team":"Dallas Cowboys","position":"RB","bye":10,"stats":"642 Rush Yds, 3 TD, 51 Rec, 313 Rec Yds, 2 TD"},
+                {"rank":128,"name":"Brian Robinson Jr.","team":"Washington Commanders","position":"RB","bye":14,"stats":"733 Rush Yds, 5 TD, 36 Rec, 358 Rec Yds, 4 TD"},
+                {"rank":129,"name":"Wan'Dale Robinson","team":"New York Giants","position":"WR","bye":11,"stats":"60 Rec, 525 Yds, 1 TD"},
+                {"rank":130,"name":"Kendre Miller","team":"New Orleans Saints","position":"RB","bye":11,"stats":"156 Rush Yds, 1 TD, 1 Rec, 10 Rec Yds, 0 TD"},
+                {"rank":131,"name":"Josh Downs","team":"Indianapolis Colts","position":"WR","bye":11,"stats":"68 Rec, 771 Yds, 2 TD"},
+                {"rank":132,"name":"Tyler Allgeier","team":"Atlanta Falcons","position":"RB","bye":5,"stats":"683 Rush Yds, 4 TD, 18 Rec, 193 Rec Yds, 1 TD"},
+                {"rank":133,"name":"Rashod Bateman","team":"Baltimore Ravens","position":"WR","bye":7,"stats":"32 Rec, 367 Yds, 1 TD"},
+                {"rank":134,"name":"Jaylen Warren","team":"Pittsburgh Steelers","position":"RB","bye":5,"stats":"784 Rush Yds, 4 TD, 61 Rec, 370 Rec Yds, 0 TD"},
+                {"rank":135,"name":"Zay Jones","team":"Arizona Cardinals","position":"WR","bye":11,"stats":"34 Rec, 320 Yds, 2 TD"},
+                {"rank":136,"name":"Dameon Pierce","team":"Houston Texans","position":"RB","bye":6,"stats":"411 Rush Yds, 2 TD, 13 Rec, 101 Rec Yds, 1 TD"},
+                {"rank":137,"name":"Khalil Shakir","team":"Buffalo Bills","position":"WR","bye":7,"stats":"39 Rec, 611 Yds, 2 TD"},
+                {"rank":138,"name":"Rondale Moore","team":"Atlanta Falcons","position":"WR","bye":5,"stats":"40 Rec, 372 Yds, 1 TD"},
+                {"rank":139,"name":"Chase Brown","team":"Cincinnati Bengals","position":"RB","bye":10,"stats":"179 Rush Yds, 0 TD, 14 Rec, 156 Rec Yds, 1 TD"},
+                {"rank":140,"name":"Curtis Samuel","team":"Buffalo Bills","position":"WR","bye":7,"stats":"62 Rec, 613 Yds, 4 TD"},
+                {"rank":141,"name":"Tank Bigsby","team":"Jacksonville Jaguars","position":"RB","bye":12,"stats":"132 Rush Yds, 2 TD, 1 Rec, 6 Rec Yds, 0 TD"},
+                {"rank":142,"name":"Jaleel McLaughlin","team":"Denver Broncos","position":"RB","bye":12,"stats":"410 Rush Yds, 1 TD, 31 Rec, 160 Rec Yds, 2 TD"},
+                {"rank":143,"name":"Marvin Mims Jr.","team":"Denver Broncos","position":"WR","bye":12,"stats":"22 Rec, 377 Yds, 1 TD"},
+                {"rank":144,"name":"Dontayvion Wicks","team":"Green Bay Packers","position":"WR","bye":5,"stats":"39 Rec, 581 Yds, 4 TD"},
+                {"rank":145,"name":"Rico Dowdle","team":"Dallas Cowboys","position":"RB","bye":10,"stats":"361 Rush Yds, 2 TD, 17 Rec, 144 Rec Yds, 2 TD"},
+                {"rank":146,"name":"Michael Wilson","team":"Arizona Cardinals","position":"WR","bye":11,"stats":"38 Rec, 565 Yds, 3 TD"},
+                {"rank":147,"name":"Ty Chandler","team":"Minnesota Vikings","position":"RB","bye":6,"stats":"461 Rush Yds, 3 TD, 21 Rec, 159 Rec Yds, 0 TD"},
+                {"rank":148,"name":"Demarcus Robinson","team":"Los Angeles Rams","position":"WR","bye":6,"stats":"26 Rec, 371 Yds, 4 TD"},
+                {"rank":149,"name":"Kenneth Gainwell","team":"Philadelphia Eagles","position":"RB","bye":9,"stats":"364 Rush Yds, 2 TD, 30 Rec, 183 Rec Yds, 0 TD"},
+                {"rank":150,"name":"Noah Brown","team":"Houston Texans","position":"WR","bye":6,"stats":"33 Rec, 567 Yds, 2 TD"},
+                {"rank":151,"name":"Justice Hill","team":"Baltimore Ravens","position":"RB","bye":7,"stats":"387 Rush Yds, 3 TD, 28 Rec, 206 Rec Yds, 1 TD"},
+                {"rank":152,"name":"Jalin Hyatt","team":"New York Giants","position":"WR","bye":11,"stats":"23 Rec, 373 Yds, 0 TD"},
+                {"rank":153,"name":"Elijah Mitchell","team":"San Francisco 49ers","position":"RB","bye":14,"stats":"281 Rush Yds, 2 TD, 6 Rec, 15 Rec Yds, 0 TD"},
+                {"rank":154,"name":"Brandin Cooks","team":"Dallas Cowboys","position":"WR","bye":10,"stats":"54 Rec, 657 Yds, 8 TD"},
+                {"rank":155,"name":"Chris Rodriguez Jr.","team":"Washington Commanders","position":"RB","bye":14,"stats":"247 Rush Yds, 2 TD, 2 Rec, 12 Rec Yds, 0 TD"},
+                {"rank":156,"name":"Odell Beckham Jr.","team":"Miami Dolphins","position":"WR","bye":12,"stats":"35 Rec, 565 Yds, 3 TD"},
+                {"rank":157,"name":"Alexander Mattison","team":"Las Vegas Raiders","position":"RB","bye":10,"stats":"700 Rush Yds, 0 TD, 30 Rec, 192 Rec Yds, 3 TD"},
+                {"rank":158,"name":"Treylon Burks","team":"Tennessee Titans","position":"WR","bye":10,"stats":"16 Rec, 221 Yds, 0 TD"},
+                {"rank":159,"name":"D'Onta Foreman","team":"Cleveland Browns","position":"RB","bye":9,"stats":"425 Rush Yds, 4 TD, 11 Rec, 77 Rec Yds, 1 TD"},
+                {"rank":160,"name":"Alec Pierce","team":"Indianapolis Colts","position":"WR","bye":11,"stats":"32 Rec, 514 Yds, 2 TD"},
+                {"rank":161,"name":"Bucky Irving","team":"Tampa Bay Buccaneers","position":"RB","bye":11,"stats":"450 Rush Yds, 3 TD, 40 Rec, 300 Yds, 1 TD"},
+                {"rank":162,"name":"Donovan Peoples-Jones","team":"Detroit Lions","position":"WR","bye":8,"stats":"13 Rec, 155 Yds, 0 TD"},
+                {"rank":163,"name":"A.T. Perry","team":"New Orleans Saints","position":"WR","bye":11,"stats":"12 Rec, 246 Yds, 4 TD"},
+                {"rank":164,"name":"D'Andre Swift","team":"Chicago Bears","position":"RB","bye":7,"stats":"1049 Rush Yds, 5 TD, 39 Rec, 209 Rec Yds, 1 TD"},
+                {"rank":165,"name":"DJ Chark","team":"Los Angeles Chargers","position":"WR","bye":5,"stats":"35 Rec, 525 Yds, 5 TD"},
+                {"rank":166,"name":"Latavius Murray","team":"Buffalo Bills","position":"RB","bye":7,"stats":"300 Rush Yds, 4 TD, 17 Rec, 119 Rec Yds, 0 TD"},
+                {"rank":167,"name":"Darius Slayton","team":"New York Giants","position":"WR","bye":11,"stats":"50 Rec, 770 Yds, 4 TD"},
+                {"rank":168,"name":"Royce Freeman","team":"Dallas Cowboys","position":"RB","bye":10,"stats":"319 Rush Yds, 2 TD, 7 Rec, 47 Rec Yds, 0 TD"},
+                {"rank":169,"name":"Salvon Ahmed","team":"Miami Dolphins","position":"RB","bye":12,"stats":"61 Rush Yds, 0 TD, 16 Rec, 88 Rec Yds, 0 TD"},
+                {"rank":170,"name":"Hunter Renfrow","team":"Kansas City Chiefs","position":"WR","bye":6,"stats":"25 Rec, 255 Yds, 1 TD"},
+                {"rank":171,"name":"Clyde Edwards-Helaire","team":"Kansas City Chiefs","position":"RB","bye":6,"stats":"223 Rush Yds, 1 TD, 17 Rec, 188 Rec Yds, 1 TD"},
+                {"rank":172,"name":"K.J. Osborn","team":"New England Patriots","position":"WR","bye":14,"stats":"48 Rec, 540 Yds, 3 TD"},
+                {"rank":173,"name":"Boston Scott","team":"Los Angeles Rams","position":"RB","bye":6,"stats":"86 Rush Yds, 0 TD, 4 Rec, 25 Rec Yds, 0 TD"},
+                {"rank":174,"name":"Tutu Atwell","team":"Los Angeles Rams","position":"WR","bye":6,"stats":"39 Rec, 483 Yds, 3 TD"},
+                {"rank":175,"name":"Joshua Kelley","team":"Los Angeles Chargers","position":"RB","bye":5,"stats":"405 Rush Yds, 3 TD, 10 Rec, 91 Rec Yds, 0 TD"},
+                {"rank":176,"name":"Terrace Marshall Jr.","team":"Carolina Panthers","position":"WR","bye":11,"stats":"19 Rec, 139 Yds, 0 TD"},
+                {"rank":177,"name":"Matt Breida","team":"New York Giants","position":"RB","bye":11,"stats":"151 Rush Yds, 1 TD, 17 Rec, 86 Rec Yds, 0 TD"},
+                {"rank":178,"name":"Van Jefferson","team":"Pittsburgh Steelers","position":"WR","bye":5,"stats":"20 Rec, 209 Yds, 0 TD"},
+                {"rank":179,"name":"Keaontay Ingram","team":"Kansas City Chiefs","position":"RB","bye":6,"stats":"74 Rush Yds, 0 TD, 4 Rec, 19 Rec Yds, 0 TD"},
+                {"rank":180,"name":"Chase Claypool","team":"Buffalo Bills","position":"WR","bye":7,"stats":"8 Rec, 77 Yds, 1 TD"},
+                {"rank":181,"name":"David Bell","team":"Cleveland Browns","position":"WR","bye":9,"stats":"14 Rec, 167 Yds, 3 TD"},
+                {"rank":182,"name":"Parris Campbell","team":"Philadelphia Eagles","position":"WR","bye":9,"stats":"20 Rec, 104 Yds, 0 TD"},
+                {"rank":183,"name":"Justyn Ross","team":"Kansas City Chiefs","position":"WR","bye":6,"stats":"6 Rec, 53 Yds, 0 TD"},
+                {"rank":184,"name":"Mack Hollins","team":"Buffalo Bills","position":"WR","bye":7,"stats":"18 Rec, 166 Yds, 0 TD"},
+                {"rank":185,"name":"Kyle Philips","team":"Tennessee Titans","position":"WR","bye":10,"stats":"15 Rec, 181 Yds, 0 TD"},
+                {"rank":186,"name":"Denzel Mims","team":"Pittsburgh Steelers","position":"WR","bye":5,"stats":"0 Rec, 0 Yds, 0 TD"},
+                {"rank":187,"name":"Michael Gallup","team":"Las Vegas Raiders","position":"WR","bye":10,"stats":"34 Rec, 418 Yds, 2 TD"},
+                {"rank":188,"name":"Allen Robinson II","team":"Pittsburgh Steelers","position":"WR","bye":5,"stats":"34 Rec, 280 Yds, 0 TD"},
+                {"rank":189,"name":"Mike Boone","team":"Carolina Panthers","position":"RB","bye":11,"stats":"125 Rush Yds, 0 TD, 1 Rec, 10 Rec Yds, 0 TD"},
+                {"rank":190,"name":"DeSean Jackson","team":"Free Agent","position":"WR","bye":null,"stats":"9 Rec, 153 Yds, 0 TD"},
+                {"rank":191,"name":"Kenyan Drake","team":"Free Agent","position":"RB","bye":null,"stats":"239 Rush Yds, 1 TD, 17 Rec, 86 Rec Yds, 0 TD"},
+                {"rank":192,"name":"Julio Jones","team":"Free Agent","position":"WR","bye":null,"stats":"24 Rec, 299 Yds, 2 TD"},
+                {"rank":193,"name":"J.D. McKissic","team":"Free Agent","position":"RB","bye":null,"stats":"96 Rush Yds, 0 TD, 45 Rec, 272 Rec Yds, 0 TD"},
+                {"rank":194,"name":"T.Y. Hilton","team":"Free Agent","position":"WR","bye":null,"stats":"23 Rec, 331 Yds, 3 TD"},
+                {"rank":195,"name":"Giovani Bernard","team":"Free Agent","position":"RB","bye":null,"stats":"58 Rush Yds, 0 TD, 28 Rec, 148 Rec Yds, 1 TD"},
+                {"rank":196,"name":"Will Fuller V","team":"Free Agent","position":"WR","bye":null,"stats":"4 Rec, 44 Yds, 0 TD"},
+                {"rank":197,"name":"Devonta Freeman","team":"Free Agent","position":"RB","bye":null,"stats":"172 Rush Yds, 0 TD, 34 Rec, 257 Rec Yds, 1 TD"},
+                {"rank":198,"name":"Emmanuel Sanders","team":"Free Agent","position":"WR","bye":null,"stats":"42 Rec, 626 Yds, 4 TD"},
+                {"rank":199,"name":"Le'Veon Bell","team":"Free Agent","position":"RB","bye":null,"stats":"101 Rush Yds, 2 TD, 16 Rec, 83 Rec Yds, 1 TD"},
+                {"rank":200,"name":"A.J. Green","team":"Free Agent","position":"WR","bye":null,"stats":"54 Rec, 848 Yds, 3 TD"},
+                {"rank":201,"name":"Adrian Peterson","team":"Free Agent","position":"RB","bye":null,"stats":"156 Rush Yds, 2 TD, 4 Rec, 8 Rec Yds, 0 TD"},
+                {"rank":202,"name":"Deonte Harty","team":"Baltimore Ravens","position":"WR","bye":7,"stats":"15 Rec, 150 Yds, 1 TD"},
+                {"rank":203,"name":"Phillip Lindsay","team":"Free Agent","position":"RB","bye":null,"stats":"138 Rush Yds, 1 TD, 4 Rec, 37 Rec Yds, 0 TD"},
+                {"rank":204,"name":"Sammy Watkins","team":"Free Agent","position":"WR","bye":null,"stats":"27 Rec, 394 Yds, 1 TD"},
+                {"rank":205,"name":"Frank Gore","team":"Free Agent","position":"RB","bye":null,"stats":"187 Rush Yds, 0 TD, 13 Rec, 101 Rec Yds, 0 TD"},
+                {"rank":206,"name":"Golden Tate","team":"Free Agent","position":"WR","bye":null,"stats":"35 Rec, 388 Yds, 2 TD"},
+                {"rank":207,"name":"Todd Gurley II","team":"Free Agent","position":"RB","bye":null,"stats":"678 Rush Yds, 9 TD, 31 Rec, 218 Rec Yds, 0 TD"},
+                {"rank":208,"name":"Larry Fitzgerald","team":"Free Agent","position":"WR","bye":null,"stats":"54 Rec, 409 Yds, 1 TD"},
+                {"rank":209,"name":"Chris Thompson","team":"Free Agent","position":"RB","bye":null,"stats":"124 Rush Yds, 0 TD, 20 Rec, 128 Rec Yds, 0 TD"},
+                {"rank":210,"name":"Demaryius Thomas","team":"Free Agent","position":"WR","bye":null,"stats":"36 Rec, 426 Yds, 1 TD"},
+                {"rank":211,"name":"Duke Johnson Jr.","team":"Free Agent","position":"RB","bye":null,"stats":"162 Rush Yds, 0 TD, 42 Rec, 411 Rec Yds, 1 TD"},
+                {"rank":212,"name":"Alshon Jeffery","team":"Free Agent","position":"WR","bye":null,"stats":"46 Rec, 559 Yds, 4 TD"},
+                {"rank":213,"name":"Theo Riddick","team":"Free Agent","position":"RB","bye":null,"stats":"84 Rush Yds, 0 TD, 61 Rec, 371 Rec Yds, 2 TD"},
+                {"rank":214,"name":"John Brown","team":"Free Agent","position":"WR","bye":null,"stats":"33 Rec, 479 Yds, 3 TD"},
+                {"rank":215,"name":"C.J. Anderson","team":"Free Agent","position":"RB","bye":null,"stats":"403 Rush Yds, 2 TD, 20 Rec, 123 Rec Yds, 1 TD"},
+                {"rank":216,"name":"Randall Cobb","team":"New York Jets","position":"WR","bye":9,"stats":"38 Rec, 417 Yds, 1 TD"},
+                {"rank":217,"name":"Lamar Miller","team":"Free Agent","position":"RB","bye":null,"stats":"165 Rush Yds, 1 TD, 11 Rec, 70 Rec Yds, 0 TD"},
+                {"rank":218,"name":"Mohamed Sanu Sr.","team":"Free Agent","position":"WR","bye":null,"stats":"59 Rec, 520 Yds, 2 TD"},
+                {"rank":219,"name":"Carlos Hyde","team":"Free Agent","position":"RB","bye":null,"stats":"356 Rush Yds, 4 TD, 10 Rec, 33 Rec Yds, 0 TD"},
+                {"rank":220,"name":"Ted Ginn Jr.","team":"Free Agent","position":"WR","bye":null,"stats":"30 Rec, 421 Yds, 2 TD"},
+                {"rank":221,"name":"Alfred Morris","team":"Free Agent","position":"RB","bye":null,"stats":"428 Rush Yds, 2 TD, 11 Rec, 86 Rec Yds, 0 TD"},
+                {"rank":222,"name":"Danny Amendola","team":"Free Agent","position":"WR","bye":null,"stats":"62 Rec, 602 Yds, 1 TD"},
+                {"rank":223,"name":"Isaiah Crowell","team":"Free Agent","position":"RB","bye":null,"stats":"685 Rush Yds, 6 TD, 21 Rec, 142 Rec Yds, 0 TD"},
+                {"rank":224,"name":"Taylor Gabriel","team":"Free Agent","position":"WR","bye":null,"stats":"33 Rec, 353 Yds, 4 TD"},
+                {"rank":225,"name":"Marshawn Lynch","team":"Free Agent","position":"RB","bye":null,"stats":"416 Rush Yds, 3 TD, 10 Rec, 77 Rec Yds, 0 TD"},
+                {"rank":226,"name":"Jeremy Maclin","team":"Free Agent","position":"WR","bye":null,"stats":"40 Rec, 440 Yds, 3 TD"},
+                {"rank":227,"name":"Jonathan Stewart","team":"Free Agent","position":"RB","bye":null,"stats":"663 Rush Yds, 1 TD, 8 Rec, 50 Rec Yds, 0 TD"},
+                {"rank":228,"name":"Jordan Matthews","team":"Free Agent","position":"WR","bye":null,"stats":"25 Rec, 282 Yds, 1 TD"},
+                {"rank":229,"name":"DeMarco Murray","team":"Free Agent","position":"RB","bye":null,"stats":"659 Rush Yds, 6 TD, 39 Rec, 249 Rec Yds, 1 TD"},
+                {"rank":230,"name":"Pierre Garcon","team":"Free Agent","position":"WR","bye":null,"stats":"40 Rec, 500 Yds, 1 TD"},
+                {"rank":231,"name":"Matt Forte","team":"Free Agent","position":"RB","bye":null,"stats":"381 Rush Yds, 2 TD, 36 Rec, 264 Rec Yds, 1 TD"},
+                {"rank":232,"name":"Brandon Marshall","team":"Free Agent","position":"WR","bye":null,"stats":"18 Rec, 154 Yds, 0 TD"},
+                {"rank":233,"name":"Jamaal Charles","team":"Free Agent","position":"RB","bye":null,"stats":"293 Rush Yds, 1 TD, 23 Rec, 129 Rec Yds, 1 TD"},
+                {"rank":234,"name":"Dez Bryant","team":"Free Agent","position":"WR","bye":null,"stats":"6 Rec, 150 Yds, 1 TD"},
+                {"rank":235,"name":"Rashad Jennings","team":"Free Agent","position":"RB","bye":null,"stats":"593 Rush Yds, 3 TD, 34 Rec, 296 Rec Yds, 0 TD"},
+                {"rank":236,"name":"Vincent Jackson","team":"Free Agent","position":"WR","bye":null,"stats":"15 Rec, 173 Yds, 0 TD"},
+                {"rank":237,"name":"Arian Foster","team":"Free Agent","position":"RB","bye":null,"stats":"55 Rush Yds, 0 TD, 18 Rec, 178 Rec Yds, 0 TD"},
+                {"rank":238,"name":"Jake Moody","team":"San Francisco 49ers","position":"K","bye":14,"stats":"29/31 FG, 48/50 XP"},
+                {"rank":239,"name":"Justin Tucker","team":"Baltimore Ravens","position":"K","bye":7,"stats":"32/37 FG, 52/52 XP"},
+                {"rank":240,"name":"Brandon Aubrey","team":"Dallas Cowboys","position":"K","bye":10,"stats":"36/38 FG, 49/49 XP"},
+                {"rank":241,"name":"Evan McPherson","team":"Cincinnati Bengals","position":"K","bye":10,"stats":"26/31 FG, 40/40 XP"},
+                {"rank":242,"name":"Jake Elliott","team":"Philadelphia Eagles","position":"K","bye":9,"stats":"30/32 FG, 45/46 XP"},
+                {"rank":243,"name":"Brett Maher","team":"Los Angeles Rams","position":"K","bye":6,"stats":"17/23 FG, 23/24 XP"},
+                {"rank":244,"name":"Jason Myers","team":"Seattle Seahawks","position":"K","bye":8,"stats":"35/42 FG, 33/33 XP"},
+                {"rank":245,"name":"Harrison Butker","team":"Kansas City Chiefs","position":"K","bye":6,"stats":"33/35 FG, 38/38 XP"},
+                {"rank":246,"name":"Younghoe Koo","team":"Atlanta Falcons","position":"K","bye":5,"stats":"32/37 FG, 27/28 XP"},
+                {"rank":247,"name":"Tyler Bass","team":"Buffalo Bills","position":"K","bye":7,"stats":"24/29 FG, 49/49 XP"},
+                {"rank":248,"name":"Cameron Dicker","team":"Los Angeles Chargers","position":"K","bye":5,"stats":"31/32 FG, 35/35 XP"},
+                {"rank":249,"name":"Ka'imi Fairbairn","team":"Houston Texans","position":"K","bye":6,"stats":"27/28 FG, 31/33 XP"},
+                {"rank":250,"name":"Matt Gay","team":"Indianapolis Colts","position":"K","bye":11,"stats":"33/41 FG, 34/34 XP"},
+                {"rank":251,"name":"Brandon McManus","team":"Washington Commanders","position":"K","bye":14,"stats":"30/37 FG, 35/35 XP"},
+                {"rank":252,"name":"Jason Sanders","team":"Miami Dolphins","position":"K","bye":12,"stats":"24/30 FG, 58/61 XP"},
+                {"rank":253,"name":"Kansas City Chiefs","team":"Kansas City Chiefs","position":"DST","bye":6,"stats":"57 Sacks, 12 INT, 11 FR, 2 TD"},
+                {"rank":254,"name":"Baltimore Ravens","team":"Baltimore Ravens","position":"DST","bye":7,"stats":"60 Sacks, 18 INT, 13 FR, 5 TD"},
+                {"rank":255,"name":"Cleveland Browns","team":"Cleveland Browns","position":"DST","bye":9,"stats":"49 Sacks, 18 INT, 10 FR, 5 TD"},
+                {"rank":256,"name":"New York Jets","team":"New York Jets","position":"DST","bye":9,"stats":"48 Sacks, 17 INT, 12 FR, 2 TD"},
+                {"rank":257,"name":"Dallas Cowboys","team":"Dallas Cowboys","position":"DST","bye":10,"stats":"54 Sacks, 17 INT, 11 FR, 7 TD"},
+                {"rank":258,"name":"Buffalo Bills","team":"Buffalo Bills","position":"DST","bye":7,"stats":"54 Sacks, 18 INT, 12 FR, 2 TD"},
+                {"rank":259,"name":"San Francisco 49ers","team":"San Francisco 49ers","position":"DST","bye":14,"stats":"48 Sacks, 22 INT, 9 FR, 1 TD"},
+                {"rank":260,"name":"Pittsburgh Steelers","team":"Pittsburgh Steelers","position":"DST","bye":5,"stats":"47 Sacks, 14 INT, 12 FR, 1 TD"},
+                {"rank":261,"name":"Indianapolis Colts","team":"Indianapolis Colts","position":"DST","bye":11,"stats":"51 Sacks, 15 INT, 14 FR, 4 TD"},
+                {"rank":262,"name":"New Orleans Saints","team":"New Orleans Saints","position":"DST","bye":11,"stats":"48 Sacks, 18 INT, 8 FR, 4 TD"},
+                {"rank":263,"name":"Miami Dolphins","team":"Miami Dolphins","position":"DST","bye":12,"stats":"56 Sacks, 14 INT, 11 FR, 2 TD"},
+                {"rank":264,"name":"Philadelphia Eagles","team":"Philadelphia Eagles","position":"DST","bye":9,"stats":"70 Sacks, 11 INT, 8 FR, 1 TD"},
+                {"rank":265,"name":"Tampa Bay Buccaneers","team":"Tampa Bay Buccaneers","position":"DST","bye":11,"stats":"47 Sacks, 12 INT, 14 FR, 1 TD"},
+                {"rank":266,"name":"Houston Texans","team":"Houston Texans","position":"DST","bye":6,"stats":"46 Sacks, 14 INT, 9 FR, 2 TD"},
+                {"rank":267,"name":"Jacksonville Jaguars","team":"Jacksonville Jaguars","position":"DST","bye":12,"stats":"40 Sacks, 11 INT, 14 FR, 3 TD"},
+                {"rank":268,"name":"Detroit Lions","team":"Detroit Lions","position":"DST","bye":8,"stats":"41 Sacks, 16 INT, 11 FR, 1 TD"},
+                {"rank":269,"name":"Green Bay Packers","team":"Green Bay Packers","position":"DST","bye":5,"stats":"45 Sacks, 7 INT, 12 FR, 1 TD"},
+                {"rank":270,"name":"Chicago Bears","team":"Chicago Bears","position":"DST","bye":7,"stats":"30 Sacks, 22 INT, 10 FR, 3 TD"},
+                {"rank":271,"name":"Denver Broncos","team":"Denver Broncos","position":"DST","bye":12,"stats":"27 Sacks, 11 INT, 13 FR, 2 TD"},
+                {"rank":272,"name":"Los Angeles Rams","team":"Los Angeles Rams","position":"DST","bye":6,"stats":"41 Sacks, 10 INT, 9 FR, 0 TD"},
+                {"rank":273,"name":"Minnesota Vikings","team":"Minnesota Vikings","position":"DST","bye":6,"stats":"54 Sacks, 12 INT, 10 FR, 2 TD"},
+                {"rank":274,"name":"Los Angeles Chargers","team":"Los Angeles Chargers","position":"DST","bye":5,"stats":"48 Sacks, 12 INT, 11 FR, 1 TD"},
+                {"rank":275,"name":"Atlanta Falcons","team":"Atlanta Falcons","position":"DST","bye":5,"stats":"47 Sacks, 10 INT, 10 FR, 1 TD"},
+                {"rank":276,"name":"New England Patriots","team":"New England Patriots","position":"DST","bye":14,"stats":"36 Sacks, 12 INT, 8 FR, 3 TD"},
+                {"rank":277,"name":"Seattle Seahawks","team":"Seattle Seahawks","position":"DST","bye":8,"stats":"47 Sacks, 12 INT, 9 FR, 1 TD"},
+                {"rank":278,"name":"Las Vegas Raiders","team":"Las Vegas Raiders","position":"DST","bye":10,"stats":"30 Sacks, 13 INT, 10 FR, 2 TD"},
+                {"rank":279,"name":"Washington Commanders","team":"Washington Commanders","position":"DST","bye":14,"stats":"37 Sacks, 12 INT, 9 FR, 1 TD"},
+                {"rank":280,"name":"Carolina Panthers","team":"Carolina Panthers","position":"DST","bye":11,"stats":"27 Sacks, 7 INT, 9 FR, 1 TD"},
+                {"rank":281,"name":"Arizona Cardinals","team":"Arizona Cardinals","position":"DST","bye":11,"stats":"30 Sacks, 11 INT, 11 FR, 1 TD"},
+                {"rank":282,"name":"Tennessee Titans","team":"Tennessee Titans","position":"DST","bye":10,"stats":"45 Sacks, 6 INT, 8 FR, 0 TD"},
+                {"rank":283,"name":"New York Giants","team":"New York Giants","position":"DST","bye":11,"stats":"34 Sacks, 18 INT, 11 FR, 1 TD"},
+                {"rank":284,"name":"Dalvin Cook","team":"Free Agent","position":"RB","bye":null,"stats":"231 Rush Yds, 2 TD, 15 Rec, 73 Rec Yds, 0 TD"},
+                {"rank":285,"name":"Jerick McKinnon","team":"Free Agent","position":"RB","bye":null,"stats":"60 Rush Yds, 1 TD, 25 Rec, 192 Rec Yds, 4 TD"},
+                {"rank":286,"name":"Damien Harris","team":"Free Agent","position":"RB","bye":null,"stats":"106 Rush Yds, 1 TD, 5 Rec, 22 Rec Yds, 0 TD"},
+                {"rank":287,"name":"Leonard Fournette","team":"Free Agent","position":"RB","bye":null,"stats":"189 Rush Yds, 0 TD, 13 Rec, 83 Rec Yds, 0 TD"},
+                {"rank":288,"name":"Kareem Hunt","team":"Free Agent","position":"RB","bye":null,"stats":"411 Rush Yds, 9 TD, 15 Rec, 86 Rec Yds, 0 TD"},
+                {"rank":289,"name":"Marlon Mack","team":"Free Agent","position":"RB","bye":null,"stats":"84 Rush Yds, 1 TD, 8 Rec, 57 Rec Yds, 0 TD"},
+                {"rank":290,"name":"Mark Ingram II","team":"Free Agent","position":"RB","bye":null,"stats":"233 Rush Yds, 1 TD, 10 Rec, 60 Rec Yds, 0 TD"},
+                {"rank":291,"name":"Rex Burkhead","team":"Free Agent","position":"RB","bye":null,"stats":"80 Rush Yds, 0 TD, 26 Rec, 148 Rec Yds, 1 TD"},
+                {"rank":292,"name":"D'Ernest Johnson","team":"Jacksonville Jaguars","position":"RB","bye":12,"stats":"143 Rush Yds, 0 TD, 12 Rec, 125 Rec Yds, 0 TD"},
+                {"rank":293,"name":"Jeff Wilson Jr.","team":"Miami Dolphins","position":"RB","bye":12,"stats":"188 Rush Yds, 0 TD, 14 Rec, 103 Rec Yds, 0 TD"},
+                {"rank":294,"name":"Myles Gaskin","team":"Minnesota Vikings","position":"RB","bye":6,"stats":"68 Rush Yds, 0 TD, 10 Rec, 51 Rec Yds, 0 TD"},
+                {"rank":295,"name":"Sony Michel","team":"Free Agent","position":"RB","bye":null,"stats":"106 Rush Yds, 0 TD, 9 Rec, 53 Rec Yds, 0 TD"},
+                {"rank":296,"name":"Darrell Henderson Jr.","team":"Free Agent","position":"RB","bye":null,"stats":"283 Rush Yds, 3 TD, 17 Rec, 138 Rec Yds, 0 TD"},
+                {"rank":297,"name":"David Johnson","team":"Free Agent","position":"RB","bye":null,"stats":"99 Rush Yds, 0 TD, 28 Rec, 213 Rec Yds, 0 TD"},
+                {"rank":298,"name":"Jordan Howard","team":"Free Agent","position":"RB","bye":null,"stats":"35 Rush Yds, 1 TD, 2 Rec, 18 Rec Yds, 0 TD"},
+                {"rank":299,"name":"Justin Fields","team":"New York Jets","position":"QB","bye":9,"stats":"2514 Pass Yds, 17 TD, 1103 Rush Yds, 8 TD"},
+                {"rank":300,"name":"Raheem Mostert","team":"Miami Dolphins","position":"RB","bye":12,"stats":"1012 Rush Yds, 18 TD, 25 Rec, 175 Rec Yds, 3 TD"},
+                {"rank":301,"name":"Cam Ward","team":"Tennessee Titans","position":"QB","bye":10,"stats":"Proj: 3700 Pass Yds, 22 TD, 450 Rush Yds, 4 TD"},
+                {"rank":302,"name":"Ashton Jeanty","team":"Las Vegas Raiders","position":"RB","bye":10,"stats":"Proj: 900 Rush Yds, 8 TD, 30 Rec, 250 Rec Yds, 2 TD"},
+                {"rank":303,"name":"Tetairoa McMillan","team":"Arizona Cardinals","position":"WR","bye":11,"stats":"Proj: 80 Rec, 1100 Yds, 7 TD"},
+                {"rank":304,"name":"Travis Hunter","team":"Jacksonville Jaguars","position":"WR","bye":12,"stats":"Proj: 70 Rec, 950 Yds, 6 TD"},
+                {"rank":305,"name":"TreVeyon Henderson","team":"New England Patriots","position":"RB","bye":14,"stats":"Proj: 650 Rush Yds, 5 TD, 25 Rec, 200 Rec Yds, 1 TD"},
+                {"rank":306,"name":"Omarion Hampton","team":"Los Angeles Chargers","position":"RB","bye":5,"stats":"Proj: 800 Rush Yds, 7 TD, 20 Rec, 150 Rec Yds, 1 TD"},
+                {"rank":307,"name":"Kaleb Johnson","team":"Pittsburgh Steelers","position":"RB","bye":5,"stats":"Proj: 600 Rush Yds, 5 TD, 15 Rec, 100 Rec Yds, 0 TD"},
+                {"rank":308,"name":"Tyler Warren","team":"Indianapolis Colts","position":"TE","bye":11,"stats":"Proj: 50 Rec, 550 Yds, 4 TD"},
+                {"rank":309,"name":"Quinshon Judkins","team":"Cleveland Browns","position":"RB","bye":9,"stats":"Proj: 750 Rush Yds, 7 TD, 20 Rec, 150 Rec Yds, 1 TD"},
+                {"rank":310,"name":"Jaxson Dart","team":"New York Giants","position":"QB","bye":11,"stats":"Proj: 3500 Pass Yds, 18 TD, 350 Rush Yds, 3 TD"},
+                {"rank":311,"name":"Luther Burden III","team":"New York Jets","position":"WR","bye":9,"stats":"Proj: 65 Rec, 900 Yds, 5 TD"},
+                {"rank":312,"name":"Matthew Golden","team":"Green Bay Packers","position":"WR","bye":5,"stats":"Proj: 60 Rec, 850 Yds, 5 TD"},
+                {"rank":313,"name":"Will Shipley","team":"Philadelphia Eagles","position":"RB","bye":9,"stats":"Proj: 400 Rush Yds, 3 TD, 35 Rec, 250 Rec Yds, 1 TD"},
+                {"rank":314,"name":"Ray Davis","team":"Buffalo Bills","position":"RB","bye":7,"stats":"Proj: 500 Rush Yds, 4 TD, 20 Rec, 150 Rec Yds, 1 TD"},
+                {"rank":315,"name":"MarShawn Lloyd","team":"Green Bay Packers","position":"RB","bye":5,"stats":"Proj: 450 Rush Yds, 4 TD, 15 Rec, 100 Rec Yds, 0 TD"},
+                {"rank":316,"name":"Isaac Guerendo","team":"San Francisco 49ers","position":"RB","bye":14,"stats":"Proj: 300 Rush Yds, 2 TD, 10 Rec, 80 Rec Yds, 0 TD"},
+                {"rank":317,"name":"Braelon Allen","team":"New York Jets","position":"RB","bye":9,"stats":"Proj: 400 Rush Yds, 3 TD, 10 Rec, 75 Rec Yds, 0 TD"},
+                {"rank":318,"name":"Dylan Sampson","team":"Cleveland Browns","position":"RB","bye":9,"stats":"Proj: 350 Rush Yds, 3 TD, 20 Rec, 150 Rec Yds, 1 TD"},
+                {"rank":319,"name":"Woody Marks","team":"Houston Texans","position":"RB","bye":6,"stats":"Proj: 300 Rush Yds, 2 TD, 25 Rec, 200 Rec Yds, 1 TD"},
+                {"rank":320,"name":"Brashard Smith","team":"Kansas City Chiefs","position":"RB","bye":6,"stats":"Proj: 250 Rush Yds, 2 TD, 15 Rec, 120 Rec Yds, 1 TD"},
+                {"rank":321,"name":"Bhayshul Tuten","team":"Jacksonville Jaguars","position":"RB","bye":12,"stats":"Proj: 400 Rush Yds, 3 TD, 20 Rec, 150 Rec Yds, 1 TD"},
+                {"rank":322,"name":"Jaydon Blue","team":"Dallas Cowboys","position":"RB","bye":10,"stats":"Proj: 300 Rush Yds, 2 TD, 15 Rec, 100 Rec Yds, 0 TD"},
+                {"rank":323,"name":"Cam Skattebo","team":"New York Giants","position":"RB","bye":11,"stats":"Proj: 350 Rush Yds, 3 TD, 20 Rec, 150 Rec Yds, 1 TD"},
+                {"rank":324,"name":"RJ Harvey","team":"Denver Broncos","position":"RB","bye":12,"stats":"Proj: 700 Rush Yds, 6 TD, 20 Rec, 150 Rec Yds, 1 TD"},
+                {"rank":325,"name":"Rome Odunze","team":"Chicago Bears","position":"WR","bye":7,"stats":"75 Rec, 950 Yds, 6 TD"},
+                {"rank":326,"name":"Keon Coleman","team":"Buffalo Bills","position":"WR","bye":7,"stats":"60 Rec, 800 Yds, 5 TD"},
+                {"rank":327,"name":"Xavier Legette","team":"Carolina Panthers","position":"WR","bye":11,"stats":"45 Rec, 600 Yds, 3 TD"},
+                {"rank":328,"name":"Ricky Pearsall","team":"San Francisco 49ers","position":"WR","bye":14,"stats":"40 Rec, 550 Yds, 3 TD"},
+                {"rank":329,"name":"Adonai Mitchell","team":"Indianapolis Colts","position":"WR","bye":11,"stats":"50 Rec, 750 Yds, 6 TD"},
+                {"rank":330,"name":"Troy Franklin","team":"Denver Broncos","position":"WR","bye":12,"stats":"60 Rec, 850 Yds, 5 TD"},
+                {"rank":331,"name":"Jalen McMillan","team":"Tampa Bay Buccaneers","position":"WR","bye":11,"stats":"50 Rec, 700 Yds, 4 TD"},
+                {"rank":332,"name":"Ja'Lynn Polk","team":"New England Patriots","position":"WR","bye":14,"stats":"50 Rec, 650 Yds, 4 TD"},
+                {"rank":333,"name":"Roman Wilson","team":"Pittsburgh Steelers","position":"WR","bye":5,"stats":"45 Rec, 600 Yds, 4 TD"},
+                {"rank":334,"name":"Malachi Corley","team":"New York Jets","position":"WR","bye":9,"stats":"40 Rec, 500 Yds, 2 TD"},
+                {"rank":335,"name":"Jermaine Burton","team":"Cincinnati Bengals","position":"WR","bye":10,"stats":"35 Rec, 500 Yds, 3 TD"},
+                {"rank":336,"name":"Brenden Rice","team":"Los Angeles Chargers","position":"WR","bye":5,"stats":"40 Rec, 550 Yds, 3 TD"},
+                {"rank":337,"name":"Devontez Walker","team":"Baltimore Ravens","position":"WR","bye":7,"stats":"35 Rec, 500 Yds, 3 TD"},
+                {"rank":338,"name":"Javon Baker","team":"New England Patriots","position":"WR","bye":14,"stats":"40 Rec, 550 Yds, 3 TD"},
+                {"rank":339,"name":"Luke McCaffrey","team":"Cleveland Browns","position":"WR","bye":9,"stats":"35 Rec, 450 Yds, 2 TD"},
+                {"rank":340,"name":"Ainias Smith","team":"Philadelphia Eagles","position":"WR","bye":9,"stats":"30 Rec, 350 Yds, 2 TD"},
+                {"rank":341,"name":"Johnny Wilson","team":"Philadelphia Eagles","position":"WR","bye":9,"stats":"25 Rec, 350 Yds, 2 TD"},
+                {"rank":342,"name":"Jacob Cowing","team":"San Francisco 49ers","position":"WR","bye":14,"stats":"30 Rec, 350 Yds, 2 TD"},
+                {"rank":343,"name":"Tahj Washington","team":"Miami Dolphins","position":"WR","bye":12,"stats":"25 Rec, 300 Yds, 2 TD"},
+                {"rank":344,"name":"Cornelius Johnson","team":"Los Angeles Chargers","position":"WR","bye":5,"stats":"30 Rec, 350 Yds, 2 TD"},
+                {"rank":345,"name":"Ryan Flournoy","team":"Dallas Cowboys","position":"WR","bye":10,"stats":"25 Rec, 300 Yds, 2 TD"},
+                {"rank":346,"name":"Jaheim Bell","team":"New England Patriots","position":"TE","bye":14,"stats":"35 Rec, 400 Yds, 3 TD"},
+                {"rank":347,"name":"Theo Johnson","team":"New York Giants","position":"TE","bye":11,"stats":"30 Rec, 350 Yds, 3 TD"},
+                {"rank":348,"name":"Ben Sinnott","team":"Washington Commanders","position":"TE","bye":14,"stats":"45 Rec, 500 Yds, 4 TD"},
+                {"rank":349,"name":"Erick All","team":"Cincinnati Bengals","position":"TE","bye":10,"stats":"25 Rec, 300 Yds, 2 TD"},
+                {"rank":350,"name":"Cade Stover","team":"Houston Texans","position":"TE","bye":6,"stats":"30 Rec, 350 Yds, 3 TD"},
+                {"rank":351,"name":"Tip Reiman","team":"Arizona Cardinals","position":"TE","bye":11,"stats":"20 Rec, 250 Yds, 2 TD"},
+                {"rank":352,"name":"Jared Wiley","team":"Kansas City Chiefs","position":"TE","bye":6,"stats":"25 Rec, 300 Yds, 2 TD"},
+                {"rank":353,"name":"Tanner McLachlan","team":"Cincinnati Bengals","position":"TE","bye":10,"stats":"20 Rec, 250 Yds, 2 TD"},
+                {"rank":354,"name":"Devin Culp","team":"Tampa Bay Buccaneers","position":"TE","bye":11,"stats":"15 Rec, 200 Yds, 1 TD"},
+                {"rank":355,"name":"A.J. Barner","team":"Seattle Seahawks","position":"TE","bye":8,"stats":"15 Rec, 200 Yds, 1 TD"},
+                {"rank":356,"name":"Drake Maye","team":"New England Patriots","position":"QB","bye":14,"stats":"2276 Pass Yds, 15 TD, 229 Rush Yds, 2 TD"},
+                {"rank":357,"name":"J.J. McCarthy","team":"Minnesota Vikings","position":"QB","bye":6,"stats":"500 Pass Yds, 3 TD"},
+                {"rank":358,"name":"Bo Nix","team":"Denver Broncos","position":"QB","bye":12,"stats":"3775 Pass Yds, 29 TD, 198 Rush Yds, 3 TD"},
+                {"rank":359,"name":"Michael Penix Jr.","team":"Atlanta Falcons","position":"QB","bye":5,"stats":"Backup"},
+                {"rank":360,"name":"Spencer Rattler","team":"New Orleans Saints","position":"QB","bye":11,"stats":"Backup"},
+                {"rank":361,"name":"Jordan Travis","team":"New York Jets","position":"QB","bye":9,"stats":"Backup"},
+                {"rank":362,"name":"Joe Milton III","team":"New England Patriots","position":"QB","bye":14,"stats":"Backup"},
+                {"rank":363,"name":"Devin Leary","team":"Baltimore Ravens","position":"QB","bye":7,"stats":"Backup"},
+                {"rank":364,"name":"Sam Hartman","team":"Washington Commanders","position":"QB","bye":14,"stats":"Backup"},
+                {"rank":365,"name":"Michael Pratt","team":"Green Bay Packers","position":"QB","bye":5,"stats":"Backup"},
+                {"rank":366,"name":"Carter Bradley","team":"Las Vegas Raiders","position":"QB","bye":10,"stats":"Backup"},
+                {"rank":367,"name":"Kedon Slovis","team":"Indianapolis Colts","position":"QB","bye":11,"stats":"Backup"},
+                {"rank":368,"name":"Austin Reed","team":"Chicago Bears","position":"QB","bye":7,"stats":"Backup"},
+                {"rank":369,"name":"Will Levis","team":"Tennessee Titans","position":"QB","bye":10,"stats":"3200 Pass Yds, 15 TD, 200 Rush Yds, 2 TD"},
+                {"rank":370,"name":"Aidan O'Connell","team":"Las Vegas Raiders","position":"QB","bye":10,"stats":"3000 Pass Yds, 14 TD, 50 Rush Yds, 0 TD"},
+                {"rank":371,"name":"Gardner Minshew","team":"Las Vegas Raiders","position":"QB","bye":10,"stats":"3320 Pass Yds, 15 TD, 100 Rush Yds, 3 TD"},
+                {"rank":372,"name":"Sam Howell","team":"Seattle Seahawks","position":"QB","bye":8,"stats":"3946 Pass Yds, 21 TD, 263 Rush Yds, 5 TD"},
+                {"rank":373,"name":"Desmond Ridder","team":"Arizona Cardinals","position":"QB","bye":11,"stats":"2836 Pass Yds, 12 TD, 193 Rush Yds, 5 TD"},
+                {"rank":374,"name":"Russell Wilson","team":"Pittsburgh Steelers","position":"QB","bye":5,"stats":"3070 Pass Yds, 26 TD, 341 Rush Yds, 3 TD"},
+                {"rank":375,"name":"Kenny Pickett","team":"Philadelphia Eagles","position":"QB","bye":9,"stats":"2070 Pass Yds, 6 TD, 54 Rush Yds, 1 TD"},
+                {"rank":376,"name":"Mac Jones","team":"Jacksonville Jaguars","position":"QB","bye":12,"stats":"2120 Pass Yds, 10 TD, 96 Rush Yds, 0 TD"},
+                {"rank":377,"name":"Jimmy Garoppolo","team":"Los Angeles Rams","position":"QB","bye":6,"stats":"1205 Pass Yds, 7 TD, 33 Rush Yds, 0 TD"},
+                {"rank":378,"name":"Jacoby Brissett","team":"New England Patriots","position":"QB","bye":14,"stats":"224 Pass Yds, 3 TD, 19 Rush Yds, 0 TD"},
+                {"rank":379,"name":"Tyler Huntley","team":"Cleveland Browns","position":"QB","bye":9,"stats":"203 Pass Yds, 3 TD, 57 Rush Yds, 0 TD"},
+                {"rank":380,"name":"Cooper Rush","team":"Dallas Cowboys","position":"QB","bye":10,"stats":"144 Pass Yds, 1 TD, 2 Rush Yds, 0 TD"},
+                {"rank":381,"name":"Tyrod Taylor","team":"New York Jets","position":"QB","bye":9,"stats":"1341 Pass Yds, 5 TD, 197 Rush Yds, 0 TD"},
+                {"rank":382,"name":"Mike White","team":"Miami Dolphins","position":"QB","bye":12,"stats":"74 Pass Yds, 1 TD, 7 Rush Yds, 0 TD"},
+                {"rank":383,"name":"Kyle Trask","team":"Tampa Bay Buccaneers","position":"QB","bye":11,"stats":"23 Pass Yds, 0 TD, 5 Rush Yds, 0 TD"},
+                {"rank":384,"name":"Davis Mills","team":"Houston Texans","position":"QB","bye":6,"stats":"173 Pass Yds, 1 TD, 3 Rush Yds, 0 TD"},
+                {"rank":385,"name":"Case Keenum","team":"Houston Texans","position":"QB","bye":6,"stats":"62 Pass Yds, 1 TD, 0 Rush Yds, 0 TD"},
+                {"rank":386,"name":"Taylor Heinicke","team":"Atlanta Falcons","position":"QB","bye":5,"stats":"890 Pass Yds, 5 TD, 124 Rush Yds, 1 TD"},
+                {"rank":387,"name":"Marcus Mariota","team":"Washington Commanders","position":"QB","bye":14,"stats":"164 Pass Yds, 1 TD, 52 Rush Yds, 0 TD"},
+                {"rank":388,"name":"Mitch Trubisky","team":"Buffalo Bills","position":"QB","bye":7,"stats":"632 Pass Yds, 4 TD, 27 Rush Yds, 1 TD"},
+                {"rank":389,"name":"Drew Lock","team":"New York Giants","position":"QB","bye":11,"stats":"543 Pass Yds, 3 TD, 39 Rush Yds, 1 TD"},
+                {"rank":390,"name":"Jameis Winston","team":"Cleveland Browns","position":"QB","bye":9,"stats":"264 Pass Yds, 2 TD, 1 Rush Yds, 0 TD"},
+                {"rank":391,"name":"Andy Dalton","team":"Carolina Panthers","position":"QB","bye":11,"stats":"361 Pass Yds, 2 TD, 4 Rush Yds, 0 TD"},
+                {"rank":392,"name":"C.J. Beathard","team":"Jacksonville Jaguars","position":"QB","bye":12,"stats":"94 Pass Yds, 1 TD, 3 Rush Yds, 0 TD"},
+                {"rank":393,"name":"Brian Hoyer","team":"Las Vegas Raiders","position":"QB","bye":10,"stats":"620 Pass Yds, 2 TD, 7 Rush Yds, 0 TD"},
+                {"rank":394,"name":"Jeff Driskel","team":"Washington Commanders","position":"QB","bye":14,"stats":"166 Pass Yds, 2 TD, 32 Rush Yds, 1 TD"},
+                {"rank":395,"name":"Brett Rypien","team":"Chicago Bears","position":"QB","bye":7,"stats":"406 Pass Yds, 2 TD, 1 Rush Yds, 0 TD"},
+                {"rank":396,"name":"John Wolford","team":"Tampa Bay Buccaneers","position":"QB","bye":11,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":397,"name":"Nick Mullens","team":"Minnesota Vikings","position":"QB","bye":6,"stats":"1306 Pass Yds, 7 TD, 25 Rush Yds, 0 TD"},
+                {"rank":398,"name":"Jarrett Stidham","team":"Denver Broncos","position":"QB","bye":12,"stats":"496 Pass Yds, 2 TD, 84 Rush Yds, 0 TD"},
+                {"rank":399,"name":"Easton Stick","team":"Los Angeles Chargers","position":"QB","bye":5,"stats":"1129 Pass Yds, 3 TD, 79 Rush Yds, 0 TD"},
+                {"rank":400,"name":"Trey Lance","team":"Dallas Cowboys","position":"QB","bye":10,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":401,"name":"Sam Ehlinger","team":"Indianapolis Colts","position":"QB","bye":11,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":402,"name":"Malik Willis","team":"Tennessee Titans","position":"QB","bye":10,"stats":"100 Pass Yds, 0 TD, 49 Rush Yds, 0 TD"},
+                {"rank":403,"name":"Skylar Thompson","team":"Miami Dolphins","position":"QB","bye":12,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":404,"name":"Bailey Zappe","team":"New England Patriots","position":"QB","bye":14,"stats":"1273 Pass Yds, 6 TD, 97 Rush Yds, 0 TD"},
+                {"rank":405,"name":"Clayton Tune","team":"Arizona Cardinals","position":"QB","bye":11,"stats":"62 Pass Yds, 0 TD, 34 Rush Yds, 0 TD"},
+                {"rank":406,"name":"Dorian Thompson-Robinson","team":"Cleveland Browns","position":"QB","bye":9,"stats":"440 Pass Yds, 1 TD, 65 Rush Yds, 0 TD"},
+                {"rank":407,"name":"Tyson Bagent","team":"Chicago Bears","position":"QB","bye":7,"stats":"859 Pass Yds, 3 TD, 109 Rush Yds, 2 TD"},
+                {"rank":408,"name":"Jake Browning","team":"Cincinnati Bengals","position":"QB","bye":10,"stats":"1936 Pass Yds, 12 TD, 127 Rush Yds, 3 TD"},
+                {"rank":409,"name":"Tommy DeVito","team":"New York Giants","position":"QB","bye":11,"stats":"1101 Pass Yds, 8 TD, 195 Rush Yds, 1 TD"},
+                {"rank":410,"name":"Jaren Hall","team":"Minnesota Vikings","position":"QB","bye":6,"stats":"168 Pass Yds, 0 TD, 4 Rush Yds, 0 TD"},
+                {"rank":411,"name":"Stetson Bennett","team":"Los Angeles Rams","position":"QB","bye":6,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":412,"name":"Jake Haener","team":"New Orleans Saints","position":"QB","bye":11,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":413,"name":"Sean Clifford","team":"Green Bay Packers","position":"QB","bye":5,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":414,"name":"Aidan O'Connell","team":"Las Vegas Raiders","position":"QB","bye":10,"stats":"2218 Pass Yds, 12 TD, 7 Rush Yds, 1 TD"},
+                {"rank":415,"name":"Tanner McKee","team":"Philadelphia Eagles","position":"QB","bye":9,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":416,"name":"Max Duggan","team":"Los Angeles Chargers","position":"QB","bye":5,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":417,"name":"Holton Ahlers","team":"Seattle Seahawks","position":"QB","bye":8,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":418,"name":"Tanner Morgan","team":"Minnesota Vikings","position":"QB","bye":6,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":419,"name":"Adrian Martinez","team":"New York Jets","position":"QB","bye":9,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":420,"name":"Malik Cunningham","team":"New England Patriots","position":"QB","bye":14,"stats":"0 Pass Yds, 0 TD, 44 Rush Yds, 0 TD"},
+                {"rank":421,"name":"Emory Jones","team":"Cincinnati Bengals","position":"QB","bye":10,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":422,"name":"Hendon Hooker","team":"Detroit Lions","position":"QB","bye":8,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":423,"name":"D.J. Uiagalelei","team":"Los Angeles Chargers","position":"QB","bye":5,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":424,"name":"Chevan Cordeiro","team":"Seattle Seahawks","position":"QB","bye":8,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":425,"name":"Jack Plummer","team":"Carolina Panthers","position":"QB","bye":11,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":426,"name":"Andrew Peasley","team":"New York Jets","position":"QB","bye":9,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":427,"name":"Rocky Lombardi","team":"Los Angeles Rams","position":"QB","bye":6,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":428,"name":"Gavin Hardison","team":"Atlanta Falcons","position":"QB","bye":5,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":429,"name":"Jason Bean","team":"Indianapolis Colts","position":"QB","bye":11,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":430,"name":"Spencer Sanders","team":"Kansas City Chiefs","position":"QB","bye":6,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":431,"name":"Tim DeMorat","team":"New York Giants","position":"QB","bye":11,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":432,"name":"Theo Day","team":"Chicago Bears","position":"QB","bye":7,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":433,"name":"John Rhys Plumlee","team":"Pittsburgh Steelers","position":"QB","bye":5,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":434,"name":"Lindsey Scott Jr.","team":"Tampa Bay Buccaneers","position":"QB","bye":11,"stats":"0 Pass Yds, 0 TD, 0 Rush Yds, 0 TD"},
+                {"rank":435,"name":"Trevor Etienne","team":"Atlanta Falcons","position":"RB","bye":5,"stats":"Proj: 750 Rush Yds, 6 TD, 25 Rec, 200 Rec Yds, 1 TD"},
+                {"rank":436,"name":"Tahj Brooks","team":"Cincinnati Bengals","position":"RB","bye":10,"stats":"Proj: 500 Rush Yds, 4 TD, 15 Rec, 100 Rec Yds, 0 TD"},
+                {"rank":437,"name":"DJ Giddens","team":"Indianapolis Colts","position":"RB","bye":11,"stats":"Proj: 450 Rush Yds, 3 TD, 20 Rec, 150 Rec Yds, 1 TD"},
+                {"rank":438,"name":"Jalen Milroe","team":"Seattle Seahawks","position":"QB","bye":8,"stats":"Backup"},
+                {"rank":439,"name":"Riley Leonard","team":"Indianapolis Colts","position":"QB","bye":11,"stats":"Backup"},
+                {"rank":440,"name":"Nate Carter","team":"Atlanta Falcons","position":"RB","bye":5,"stats":"UDFA - Proj: 250 Rush Yds, 2 TD, 10 Rec, 80 Rec Yds, 0 TD"},
+                {"rank":441,"name":"Jacolby George","team":"Carolina Panthers","position":"WR","bye":11,"stats":"UDFA - Proj: 30 Rec, 400 Yds, 2 TD"},
+                {"rank":442,"name":"Josh Kelly","team":"Dallas Cowboys","position":"WR","bye":10,"stats":"UDFA - Proj: 25 Rec, 350 Yds, 2 TD"},
+                {"rank":443,"name":"Rivaldo Fairweather","team":"Dallas Cowboys","position":"TE","bye":10,"stats":"UDFA - Proj: 20 Rec, 250 Yds, 1 TD"},
+                {"rank":444,"name":"Julian Fleming","team":"Green Bay Packers","position":"WR","bye":5,"stats":"UDFA - Proj: 30 Rec, 400 Yds, 2 TD"},
+                {"rank":445,"name":"Lan Larison","team":"New England Patriots","position":"RB","bye":14,"stats":"UDFA - Proj: 300 Rush Yds, 2 TD, 15 Rec, 120 Rec Yds, 1 TD"},
+                {"rank":446,"name":"Jerjuan Newton","team":"Denver Broncos","position":"WR","bye":12,"stats":"UDFA - Proj: 35 Rec, 450 Yds, 2 TD"},
+                {"rank":447,"name":"Ja'Corey Brooks","team":"Washington Commanders","position":"WR","bye":14,"stats":"UDFA - Proj: 30 Rec, 400 Yds, 2 TD"},
+                {"rank":448,"name":"Antwane Wells Jr.","team":"New York Giants","position":"WR","bye":11,"stats":"UDFA - Proj: 35 Rec, 450 Yds, 2 TD"},
+                {"rank":449,"name":"Jalin Conyers","team":"Miami Dolphins","position":"TE","bye":12,"stats":"UDFA - Proj: 25 Rec, 300 Yds, 2 TD"},
+                {"rank":450,"name":"Bryson Nesbit","team":"Minnesota Vikings","position":"TE","bye":6,"stats":"UDFA - Proj: 30 Rec, 350 Yds, 2 TD"},
+                {"rank":451,"name":"Will Sheppard","team":"Tampa Bay Buccaneers","position":"WR","bye":11,"stats":"UDFA - Proj: 30 Rec, 400 Yds, 2 TD"},
+                {"rank":452,"name":"Isaiah Neyor","team":"Free Agent","position":"WR","bye":null,"stats":"UDFA - Proj: 25 Rec, 350 Yds, 2 TD"},
+                {"rank":453,"name":"Gerry Bohanon","team":"Free Agent","position":"QB","bye":null,"stats":"UDFA - Backup"},
+                {"rank":454,"name":"Garrett Greene","team":"Tampa Bay Buccaneers","position":"QB","bye":11,"stats":"UDFA - Backup"},
+                {"rank":455,"name":"Jordan McCloud","team":"New Orleans Saints","position":"QB","bye":11,"stats":"UDFA - Backup"},
+                {"rank":456,"name":"Hank Bachmeier","team":"Free Agent","position":"QB","bye":null,"stats":"UDFA - Backup"},
+                {"rank":457,"name":"Chandler Rogers","team":"Free Agent","position":"QB","bye":null,"stats":"UDFA - Backup"},
+                {"rank":458,"name":"Brayden Schager","team":"Baltimore Ravens","position":"QB","bye":7,"stats":"UDFA - Backup"},
+                {"rank":459,"name":"Collin Schlee","team":"Baltimore Ravens","position":"QB","bye":7,"stats":"UDFA - Backup"},
+                {"rank":460,"name":"Payton Thorne","team":"Cincinnati Bengals","position":"QB","bye":10,"stats":"UDFA - Backup"},
+                {"rank":461,"name":"Ethan Garbers","team":"Carolina Panthers","position":"QB","bye":11,"stats":"UDFA - Backup"},
+                {"rank":462,"name":"Ben Wooldridge","team":"New England Patriots","position":"QB","bye":14,"stats":"UDFA - Backup"},
+                {"rank":463,"name":"Max Brosmer","team":"Minnesota Vikings","position":"QB","bye":6,"stats":"UDFA - Backup"},
+                {"rank":464,"name":"Brady Cook","team":"New York Jets","position":"QB","bye":9,"stats":"UDFA - Backup"},
+                {"rank":465,"name":"DJ Uiagalelei","team":"Los Angeles Chargers","position":"QB","bye":5,"stats":"UDFA - Backup"},
+                {"rank":466,"name":"Seth Henigan","team":"Jacksonville Jaguars","position":"QB","bye":12,"stats":"UDFA - Backup"},
+                {"rank":467,"name":"Connor Bazelak","team":"Tampa Bay Buccaneers","position":"QB","bye":11,"stats":"UDFA - Backup"},
+                {"rank":468,"name":"Blake Stenstrom","team":"Dallas Cowboys","position":"QB","bye":10,"stats":"UDFA - Minicamp Invite"},
+                {"rank":469,"name":"Taylor Elgersma","team":"Green Bay Packers","position":"QB","bye":5,"stats":"UDFA - Minicamp Invite"},
+                {"rank":470,"name":"Hajj-Malik Williams","team":"New Orleans Saints","position":"QB","bye":11,"stats":"UDFA - Minicamp Invite"},
+                {"rank":471,"name":"Brett Gabbert","team":"Miami Dolphins","position":"QB","bye":12,"stats":"UDFA - Minicamp Invite"},
+                {"rank":472,"name":"Kay'Ron Lynch-Adams","team":"Carolina Panthers","position":"RB","bye":11,"stats":"UDFA - Proj: 200 Rush Yds, 1 TD, 5 Rec, 40 Rec Yds, 0 TD"},
+                {"rank":473,"name":"Quali Conley","team":"Cincinnati Bengals","position":"RB","bye":10,"stats":"UDFA - Proj: 250 Rush Yds, 2 TD, 10 Rec, 80 Rec Yds, 0 TD"},
+                {"rank":474,"name":"Ahmani Marshall","team":"Cleveland Browns","position":"RB","bye":9,"stats":"UDFA - Proj: 200 Rush Yds, 1 TD, 5 Rec, 40 Rec Yds, 0 TD"},
+                {"rank":475,"name":"Anthony Tyus III","team":"Detroit Lions","position":"RB","bye":8,"stats":"UDFA - Proj: 200 Rush Yds, 1 TD, 5 Rec, 40 Rec Yds, 0 TD"},
+                {"rank":476,"name":"Kye Robichaux","team":"Detroit Lions","position":"RB","bye":8,"stats":"UDFA - Proj: 250 Rush Yds, 2 TD, 10 Rec, 80 Rec Yds, 0 TD"},
+                {"rank":477,"name":"Amar Johnson","team":"Green Bay Packers","position":"RB","bye":5,"stats":"UDFA - Proj: 200 Rush Yds, 1 TD, 5 Rec, 40 Rec Yds, 0 TD"},
+                {"rank":478,"name":"Jalen White","team":"Green Bay Packers","position":"RB","bye":5,"stats":"UDFA - Proj: 250 Rush Yds, 2 TD, 10 Rec, 80 Rec Yds, 0 TD"},
+                {"rank":479,"name":"Jordan Waters","team":"Los Angeles Rams","position":"RB","bye":6,"stats":"UDFA - Proj: 300 Rush Yds, 2 TD, 15 Rec, 120 Rec Yds, 1 TD"},
+                {"rank":480,"name":"Tre Stewart","team":"Minnesota Vikings","position":"RB","bye":6,"stats":"UDFA - Proj: 250 Rush Yds, 2 TD, 10 Rec, 80 Rec Yds, 0 TD"},
+                {"rank":481,"name":"Josh Williams","team":"Tampa Bay Buccaneers","position":"RB","bye":11,"stats":"UDFA - Proj: 300 Rush Yds, 2 TD, 15 Rec, 120 Rec Yds, 1 TD"},
+                {"rank":482,"name":"Ja'Quinden Jackson","team":"Jacksonville Jaguars","position":"RB","bye":12,"stats":"UDFA - Proj: 350 Rush Yds, 3 TD, 20 Rec, 150 Rec Yds, 1 TD"},
+                {"rank":483,"name":"Qualan Jones","team":"Jacksonville Jaguars","position":"RB","bye":12,"stats":"UDFA - Proj: 200 Rush Yds, 1 TD, 5 Rec, 40 Rec Yds, 0 TD"},
+                {"rank":484,"name":"Ulysses Bentley IV","team":"New Orleans Saints","position":"RB","bye":11,"stats":"UDFA - Proj: 250 Rush Yds, 2 TD, 10 Rec, 80 Rec Yds, 0 TD"},
+                {"rank":485,"name":"Elijah Young","team":"Kansas City Chiefs","position":"RB","bye":6,"stats":"UDFA - Proj: 200 Rush Yds, 1 TD, 5 Rec, 40 Rec Yds, 0 TD"},
+                {"rank":486,"name":"Corey Kiner","team":"Tampa Bay Buccaneers","position":"RB","bye":11,"stats":"UDFA - Proj: 300 Rush Yds, 2 TD, 15 Rec, 120 Rec Yds, 1 TD"},
+                {"rank":487,"name":"Ketron Jackson Jr.","team":"Baltimore Ravens","position":"WR","bye":7,"stats":"UDFA - Proj: 25 Rec, 350 Yds, 2 TD"},
+                {"rank":488,"name":"Jamoi Hayes","team":"Cincinnati Bengals","position":"WR","bye":10,"stats":"UDFA - Proj: 20 Rec, 300 Yds, 1 TD"},
+                {"rank":489,"name":"Jordan Moore","team":"Cincinnati Bengals","position":"WR","bye":10,"stats":"UDFA - Proj: 25 Rec, 350 Yds, 2 TD"},
+                {"rank":490,"name":"Rashod Owens","team":"Cincinnati Bengals","position":"WR","bye":10,"stats":"UDFA - Proj: 30 Rec, 400 Yds, 2 TD"},
+                {"rank":491,"name":"Gage Larvadain","team":"Cleveland Browns","position":"WR","bye":9,"stats":"UDFA - Proj: 25 Rec, 350 Yds, 2 TD"},
+                {"rank":492,"name":"Jackson Meeks","team":"Detroit Lions","position":"WR","bye":8,"stats":"UDFA - Proj: 20 Rec, 300 Yds, 1 TD"},
+                {"rank":493,"name":"Jakobie Keeney-James","team":"Detroit Lions","position":"WR","bye":8,"stats":"UDFA - Proj: 25 Rec, 350 Yds, 2 TD"},
+                {"rank":494,"name":"Daniel Jackson","team":"Houston Texans","position":"WR","bye":6,"stats":"UDFA - Proj: 30 Rec, 400 Yds, 2 TD"},
+                {"rank":495,"name":"Brennan Presley","team":"Los Angeles Rams","position":"WR","bye":6,"stats":"UDFA - Proj: 25 Rec, 350 Yds, 2 TD"},
+                {"rank":496,"name":"Mario Williams","team":"Los Angeles Rams","position":"WR","bye":6,"stats":"UDFA - Proj: 30 Rec, 400 Yds, 2 TD"},
+                {"rank":497,"name":"Dontae Fleming","team":"Minnesota Vikings","position":"WR","bye":6,"stats":"UDFA - Proj: 25 Rec, 350 Yds, 2 TD"},
+                {"rank":498,"name":"Myles Price","team":"Minnesota Vikings","position":"WR","bye":6,"stats":"UDFA - Proj: 30 Rec, 400 Yds, 2 TD"},
+                {"rank":499,"name":"DeMeer Blankumsee","team":"New England Patriots","position":"WR","bye":14,"stats":"UDFA - Proj: 25 Rec, 350 Yds, 2 TD"},
+                {"rank":500,"name":"Efton Chism III","team":"New England Patriots","position":"WR","bye":14,"stats":"UDFA - Proj: 30 Rec, 400 Yds, 2 TD"}
+            ];
+
+            // Pre-process players to add positional ranks
+            const posCounters = { QB: 1, RB: 1, WR: 1, TE: 1, K: 1, DST: 1 };
+            players = playersRaw.map(player => {
+                const pos_rank = posCounters[player.position];
+                posCounters[player.position]++;
+                return { ...player, pos_rank };
+            });
+
+            const playerTableBody = document.getElementById('player-data');
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const searchBar = document.getElementById('search-bar');
+            let currentPositionFilter = 'ALL';
+
+            function renderTable(playerList) {
+                playerTableBody.innerHTML = '';
+                playerList.forEach((player, index) => {
+                    const originalIndex = players.findIndex(p => p.rank === player.rank);
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="rank">${player.rank}</td>
+                        <td>
+                            <div class="player-name">
+                                <a href="#" class="player-link" data-player-index="${originalIndex}">${player.name}</a>
+                            </div>
+                            <div class="player-team">${player.team}</div>
+                        </td>
+                        <td class="pos-${player.position}">${player.position}</td>
+                        <td class="pos-rank">${player.pos_rank}</td>
+                        <td>${player.bye || 'N/A'}</td>
+                        <td class="stats">${player.stats}</td>
+                    `;
+                    playerTableBody.appendChild(row);
+                });
+
+                // Add event listeners to the new player links
+                document.querySelectorAll('.player-link').forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const playerIndex = parseInt(e.target.dataset.playerIndex, 10);
+                        showPlayerProfile(players[playerIndex]);
+                    });
+                });
+            }
+
+            window.applyFilters = function() {
+                const searchTerm = searchBar.value.toLowerCase();
+                let filteredPlayers = players;
+
+                if (currentPositionFilter !== 'ALL') {
+                    filteredPlayers = filteredPlayers.filter(p => p.position === currentPositionFilter);
+                }
+
+                if (searchTerm) {
+                    filteredPlayers = filteredPlayers.filter(p => p.name.toLowerCase().includes(searchTerm));
+                }
+
+                renderTable(filteredPlayers);
+            }
+
+            window.setActiveFilter = function(position) {
+                currentPositionFilter = position;
+                filterButtons.forEach(button => {
+                    button.classList.toggle('active', button.textContent === position);
+                });
+                applyFilters();
+            }
+
+            async function showPlayerProfile(player) {
+                setLoading(true);
+                mainPage.classList.add('hidden');
+                detailPage.classList.remove('hidden');
+                hideError();
+
+                // If player is a 2025 rookie (stats contain "Proj:") or has no stats, show projected profile
+                if (player.stats.startsWith('Proj:') || player.stats === 'Backup' || player.stats.startsWith('UDFA')) {
+                    renderProjectedProfile(player);
+                    setLoading(false);
+                    return;
+                }
+
+                try {
+                    const query = `${player.name} 2024 stats`;
+                    const data = await fetchStatMuseData(query, 'nfl');
+                    if (data && data.summaryText) {
+                        renderDetailedStats(data, player);
+                    } else {
+                        // Fallback to projected profile if StatMuse fails
+                        renderProjectedProfile(player, true);
+                    }
+                } catch (error) {
+                    console.error("Error showing player profile:", error);
+                    renderProjectedProfile(player, true); // Show projected as fallback
+                } finally {
+                    setLoading(false);
+                }
+            }
+            
+            function renderProjectedProfile(player, apiError = false) {
+                playerHeader.innerHTML = `<h2 class="text-3xl font-bold text-white">${player.name}</h2><p class="text-gray-400 mt-1">${player.position} | ${player.team}</p>`;
+                if (apiError) {
+                     playerHeader.innerHTML += `<p class="text-sm text-yellow-400 mt-2">Could not fetch live 2024 stats. Displaying projections.</p>`;
+                }
+                
+                // Reset and activate first tab
+                profileTabs.forEach((t, i) => t.classList.toggle('active', i === 0));
+                tabContents.forEach((c, i) => c.classList.toggle('hidden', i !== 0));
+
+                const keyStatsContent = document.getElementById('key-stats-content');
+                keyStatsContent.innerHTML = `<div class="stat-card"><p class="text-sm text-gray-400">2025 Projection</p><p class="text-xl font-bold text-white">${player.stats}</p></div>`;
+                
+                renderTeamSchedule(player.team.split(' ').pop()); // Use last word of team name for abbreviation
+                
+                document.getElementById('season-stats-content').innerHTML = `<p class="text-center text-gray-400">No professional season stats available.</p>`;
+                document.getElementById('game-log-content').innerHTML = `<p class="text-center text-gray-400">No professional game log available.</p>`;
+            }
+
+
+            // Initial render
+            applyFilters();
+
+            backBtn.addEventListener('click', () => {
+                detailPage.classList.add('hidden');
+                mainPage.classList.remove('hidden');
+            });
+
+            profileTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    profileTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    tabContents.forEach(content => content.id === `${tab.dataset.tab}-content` ? content.classList.remove('hidden') : content.classList.add('hidden'));
+                });
+            });
+
+            // --- All other helper functions from the example go here ---
+            // (fetchStatMuseData, renderDetailedStats, renderKeyStats, renderTeamSchedule, etc.)
+            
+            function setLoading(isLoading) {
+                loaderContainer.classList.toggle('hidden', !isLoading);
+            }
+
+            function showError(message) {
+                errorText.textContent = message;
+                errorMessageContainer.classList.remove('hidden');
+            }
+
+            function hideError() {
+                errorMessageContainer.classList.add('hidden');
+            }
+            
+            function cleanPlayerName(rawName) {
+                if (!rawName) return '';
+                return rawName.replace(/\s+(Jr\.|Sr\.|[IVX]+)$/i, '').trim();
+            }
+
+            function getTableTitle(headers) {
+                const headerString = headers.join(' ').toUpperCase();
+                if (headerString === 'DATE MATCHUP TIME (ET)') return 'Schedule';
+                if (headerString.includes('DATE') && headerString.includes('OPP')) return 'Game Log';
+                if (headerString.includes('SEASON')) return 'Season Stats';
+                return 'Other';
+            }
+
+            function renderDetailedStats(data, player) {
+                playerHeader.innerHTML = `<h2 class="text-3xl font-bold text-white">${player.name} - 2024 Season</h2><p class="text-gray-400 mt-1">${data.summaryText.replace(data.summarySubject, player.name)}</p>`;
+                
+                profileTabs.forEach((t, i) => t.classList.toggle('active', i === 0));
+                tabContents.forEach((c, i) => c.classList.toggle('hidden', i !== 0));
+
+                renderKeyStats(data);
+                renderTeamSchedule(player.team.split(' ').pop());
+                
+                const seasonStatsContent = document.getElementById('season-stats-content');
+                const gameLogContent = document.getElementById('game-log-content');
+                let seasonHTML = '';
+                let gameLogHTML = '';
+
+                data.tables.forEach((tableData) => {
+                    const tableTitle = getTableTitle(tableData[0]);
+                    if (tableData.length < 2) return;
+
+                    if (tableTitle === 'Season Stats') {
+                        seasonHTML += buildTableHTML(tableData, tableTitle);
+                    } else if (tableTitle === 'Game Log') {
+                        gameLogHTML += buildTableHTML(tableData, tableTitle);
+                    }
+                });
+
+                seasonStatsContent.innerHTML = seasonHTML || '<p class="text-center text-gray-400">No season stats available.</p>';
+                gameLogContent.innerHTML = gameLogHTML || '<p class="text-center text-gray-400">No game log available.</p>';
+            }
+
+            function renderKeyStats(data) {
+                const keyStatsContent = document.getElementById('key-stats-content');
+                let keyStats = {};
+                const seasonStatsTable = data.tables.find(table => getTableTitle(table[0]) === 'Season Stats');
+
+                if (seasonStatsTable && seasonStatsTable.length > 1) {
+                    const headers = seasonStatsTable[0];
+                    const statsRow = seasonStatsTable[1];
+                    const statMap = { 'YDS': 'Yards', 'TD': 'Touchdowns', 'RTG': 'Rating', 'INT': 'Interceptions', 'RUSH YDS': 'Rush Yds', 'REC YDS': 'Rec Yds', 'REC': 'Receptions', 'ATT': 'Attempts' };
+                    
+                    headers.forEach((header, index) => {
+                        if (statMap[header]) {
+                            keyStats[statMap[header]] = statsRow[index];
+                        }
+                    });
+                }
+                
+                if (Object.keys(keyStats).length === 0) {
+                    keyStatsContent.innerHTML = '<p class="text-center text-gray-400">No key stats available.</p>';
+                    return;
+                }
+
+                let cardsHTML = '<div class="grid grid-cols-2 md:grid-cols-4 gap-4">';
+                for (const [label, value] of Object.entries(keyStats)) {
+                    cardsHTML += `<div class="stat-card"><p class="text-sm text-gray-400">${label}</p><p class="text-2xl font-bold text-white">${value}</p></div>`;
+                }
+                cardsHTML += '</div>';
+                keyStatsContent.innerHTML = cardsHTML;
+            }
+            
+            async function renderTeamSchedule(teamAbbr) {
+                const scheduleContent = document.getElementById('schedule-content');
+                const espnTeamName = Object.keys(TEAM_ABBREVIATIONS).find(key => TEAM_ABBREVIATIONS[key].includes(teamAbbr)) || teamAbbr;
+                const espnCode = ESPN_TEAM_NAMES[espnTeamName.toUpperCase()];
+
+                if (!espnCode) {
+                    scheduleContent.innerHTML = '<p class="text-center text-gray-500">Could not find team schedule.</p>';
+                    return;
+                }
+
+                scheduleContent.innerHTML = `<div class="text-center text-gray-400">Loading ${teamAbbr} schedule...</div>`;
+                
+                try {
+                    const espnUrl = `https://www.espn.com/nfl/team/schedule/_/name/${espnCode}`;
+                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(espnUrl)}`;
+                    const response = await fetch(proxyUrl);
+                    const data = await response.json();
+                    const html = data.contents;
+                    
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    const scheduleRows = doc.querySelectorAll('.Table__TR.Table__TR--sm');
+                    
+                    if (scheduleRows.length > 0) {
+                        let tableHTML = `<div class="bg-gray-900 border border-gray-700 rounded-2xl p-4 md:p-6 shadow-lg"><h3 class="text-xl font-semibold text-blue-400 mb-2">2025 Team Schedule</h3><table class="min-w-full text-sm text-left text-gray-300 stat-table rounded-lg overflow-hidden">`;
+                        tableHTML += `<thead class="text-xs text-gray-300 uppercase"><tr><th scope="col" class="px-4 py-3">Date</th><th scope="col" class="px-4 py-3">Opponent</th><th scope="col" class="px-4 py-3">Time</th><th scope="col" class="px-4 py-3">TV</th></tr></thead><tbody>`;
+
+                        scheduleRows.forEach(row => {
+                            const cells = row.querySelectorAll('td');
+                            if(cells.length > 3 && cells[2].textContent.includes(':')) { // Basic validation for a schedule row
+                                const date = cells[0]?.textContent || '';
+                                const opponentElement = cells[1].querySelector('.team-name');
+                                const opponent = opponentElement ? opponentElement.textContent : 'TBD';
+                                const time = cells[2]?.textContent || '';
+                                const tv = cells[3]?.textContent || '';
+                                
+                                tableHTML += `<tr class="border-b border-gray-700">`;
+                                tableHTML += `<td class="px-4 py-4">${date}</td>`;
+                                tableHTML += `<td class="px-4 py-4">${opponent}</td>`;
+                                tableHTML += `<td class="px-4 py-4">${time}</td>`;
+                                tableHTML += `<td class="px-4 py-4">${tv}</td>`;
+                                tableHTML += `</tr>`;
+                            }
+                        });
+
+                        tableHTML += `</tbody></table></div>`;
+                        scheduleContent.innerHTML = tableHTML;
+                    } else {
+                        scheduleContent.innerHTML = `<p class="text-center text-gray-500">Could not parse team schedule.</p>`;
+                    }
+                } catch (error) {
+                    console.error("Error fetching ESPN schedule:", error);
+                    scheduleContent.innerHTML = `<p class="text-center text-gray-500">Could not load team schedule.</p>`;
+                }
+            }
+            
+            function buildTableHTML(tableData, tableTitle) {
+                const headers = tableData[0];
+                const nameIndex = headers.indexOf('NAME');
+                const rows = tableData.slice(1);
+                let tableHTML = `<div class="overflow-x-auto mb-6"><h3 class="text-xl font-semibold text-blue-400 mb-2">${tableTitle}</h3><table class="min-w-full text-sm text-left text-gray-300 stat-table rounded-lg overflow-hidden">`;
+                tableHTML += `<thead class="text-xs text-gray-300 uppercase"><tr>`;
+                headers.forEach((header, index) => {
+                    if (index !== nameIndex) {
+                        tableHTML += `<th scope="col" class="px-4 py-3">${header}</th>`;
+                    }
+                });
+                tableHTML += `</tr></thead><tbody>`;
+                rows.forEach(row => {
+                    tableHTML += `<tr class="border-b border-gray-700">`;
+                    row.forEach((cell, cellIndex) => {
+                        if (cellIndex !== nameIndex) {
+                            tableHTML += `<td class="px-4 py-4">${cell}</td>`;
+                        }
+                    });
+                    tableHTML += `</tr>`;
+                });
+                tableHTML += `</tbody></table></div>`;
+                return tableHTML;
+            }
+
+            async function fetchStatMuseData(query, sport = 'nfl') {
+                const endpoint = 'https://betting-summary-tool-9a7f1a6b3133.herokuapp.com';
+                const formattedQuery = query.trim().replace(/\s+/g, '-').toLowerCase();
+                try {
+                    const apiUrl = `${endpoint}/api/stats?league=${sport}&query=${formattedQuery}`;
+                    const response = await fetch(apiUrl, { signal: AbortSignal.timeout(10000) });
+                    if (response.ok) {
+                        return await response.json();
+                    }
+                    return null;
+                } catch (error) {
+                    console.error("StatMuse fetch error:", error);
+                    return null;
+                }
+            }
+        } catch (error) {
+            console.error("A critical error occurred:", error);
+            document.body.innerHTML = `<div class="text-center text-red-400 p-8">A critical error occurred. Please refresh the page. Check console for details.</div>`;
+        }
+    </script>
+</body>
+</html>
