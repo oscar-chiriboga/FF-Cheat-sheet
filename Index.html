@@ -3,30 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fantasy Football 2025 PPR Cheat Sheet</title>
+    <title>Fantasy Football 2025 PPR Cheat Sheet (Database)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #111827; /* Dark Gray */
+            background-color: #f4f6f8;
+            color: #333;
+            margin: 0;
+            padding: 20px;
         }
-        .loader {
-            border-top-color: #3498db; /* Blue */
-            -webkit-animation: spin 1s linear infinite;
-            animation: spin 1s linear infinite;
+        header {
+            text-align: center;
+            margin-bottom: 20px;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        h1 {
+            color: #1a2b4d;
+            margin-bottom: 5px;
         }
-        .filter-btn.active, .profile-tab.active {
-            background-color: #3b82f6;
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #search-bar {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px 15px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 15px;
+        }
+        #filters {
+            margin-bottom: 20px;
+        }
+       .filter-btn {
+            background-color: #007bff;
             color: white;
-            border-color: #3b82f6;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+       .filter-btn:hover,.filter-btn.active {
+            background-color: #0056b3;
+        }
+        main {
+            max-width: 1200px;
+            margin: auto;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            white-space: nowrap;
+        }
+        th {
+            background-color: #e9ecef;
+            font-weight: 600;
+            color: #495057;
+            position: sticky;
+            top: 0;
+        }
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+       .pos-QB { color: #c0392b; font-weight: bold; }
+       .pos-RB { color: #27ae60; font-weight: bold; }
+       .pos-WR { color: #2980b9; font-weight: bold; }
+       .pos-TE { color: #f39c12; font-weight: bold; }
+       .pos-K { color: #8e44ad; font-weight: bold; }
+       .pos-DST { color: #34495e; font-weight: bold; }
+       .rank, .pos-rank {
+            font-weight: bold;
+            color: #555;
+            width: 40px;
+            text-align: center;
+        }
+       .player-name {
+            font-weight: 500;
+        }
+       .player-team {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+       .stats {
+            font-size: 0.85em;
+            color: #555;
+        }
+       /* Detail Page Specific Styles */
+        #detail-page {
+            background-color: #111827;
+            color: #d1d5db;
         }
         .profile-tab.active {
              border-bottom: 2px solid #3b82f6;
+             color: white;
         }
         .stat-table th {
             background-color: #1f2937;
@@ -39,12 +123,12 @@
         }
         .player-link {
             cursor: pointer;
-            color: #60a5fa; /* Lighter Blue */
+            color: #60a5fa;
             font-weight: 500;
         }
         .player-link:hover {
             text-decoration: underline;
-            color: #93c5fd; /* Even Lighter Blue */
+            color: #93c5fd;
         }
         .stat-card {
             background-color: #1f2937;
@@ -53,56 +137,75 @@
             padding: 1rem;
             text-align: center;
         }
+        .loader {
+            border-top-color: #3498db;
+            -webkit-animation: spin 1s linear infinite;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
-<body class="text-gray-200 min-h-screen p-4 sm:p-6 lg:p-8">
+<body class="bg-gray-100">
 
     <div class="w-full max-w-6xl mx-auto space-y-8">
         <!-- Main Page View -->
         <div id="main-page">
-            <header class="text-center">
-                <h1 class="text-4xl md:text-5xl font-bold text-white">Fantasy Football 2025 - Full PPR Cheat Sheet</h1>
-                <p class="text-gray-400 mt-2 text-lg">Click a player for a detailed profile and 2025 schedule.</p>
+            <header class="text-center my-6">
+                <h1 class="text-4xl md:text-5xl font-bold text-gray-800">Fantasy Football 2025 - Full PPR Cheat Sheet</h1>
+                <p class="text-gray-600 mt-2 text-lg">Click a player for a detailed profile and 2025 schedule.</p>
             </header>
-            <div class="controls">
-                <input type="text" id="search-bar" onkeyup="applyFilters()" placeholder="Search for a player...">
-                <div id="filters">
-                    <button class="filter-btn active" onclick="setActiveFilter('ALL')">ALL</button>
-                    <button class="filter-btn" onclick="setActiveFilter('QB')">QB</button>
-                    <button class="filter-btn" onclick="setActiveFilter('RB')">RB</button>
-                    <button class="filter-btn" onclick="setActiveFilter('WR')">WR</button>
-                    <button class="filter-btn" onclick="setActiveFilter('TE')">TE</button>
-                    <button class="filter-btn" onclick="setActiveFilter('K')">K</button>
-                    <button class="filter-btn" onclick="setActiveFilter('DST')">DST</button>
-                </div>
+            
+            <!-- Setup Container -->
+            <div id="setup-container" class="text-center p-6 bg-yellow-100 border border-yellow-300 rounded-lg hidden">
+                <p class="font-semibold mb-2">First-Time Setup Required</p>
+                <p class="text-sm mb-4">Click the button below to load the player data into the database. This only needs to be done once.</p>
+                <button id="seed-db-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition">Run First-Time Setup</button>
+                <p id="seed-progress" class="text-sm mt-2 text-gray-600"></p>
             </div>
-            <main>
-                <table id="player-table">
-                    <thead>
-                        <tr>
-                            <th class="rank">OVR</th>
-                            <th>Player</th>
-                            <th>Pos</th>
-                            <th class="pos-rank">POS RK</th>
-                            <th>Bye</th>
-                            <th>2024 Key Stats</th>
-                        </tr>
-                    </thead>
-                    <tbody id="player-data">
-                        </tbody>
-                </table>
-            </main>
+
+            <div id="app-content" class="hidden">
+                <div class="controls bg-white p-4 rounded-lg shadow-md mb-6">
+                    <input type="text" id="search-bar" class="w-full max-w-md mx-auto block border border-gray-300 rounded-md p-2" placeholder="Search for a player...">
+                    <div id="filters" class="mt-4">
+                        <button class="filter-btn active" data-position="ALL">ALL</button>
+                        <button class="filter-btn" data-position="QB">QB</button>
+                        <button class="filter-btn" data-position="RB">RB</button>
+                        <button class="filter-btn" data-position="WR">WR</button>
+                        <button class="filter-btn" data-position="TE">TE</button>
+                        <button class="filter-btn" data-position="K">K</button>
+                        <button class="filter-btn" data-position="DST">DST</button>
+                    </div>
+                </div>
+                <main class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <table id="player-table" class="w-full">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="rank p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">OVR</th>
+                                <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Player</th>
+                                <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pos</th>
+                                <th class="pos-rank p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">POS RK</th>
+                                <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bye</th>
+                                <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">2024 Key Stats</th>
+                            </tr>
+                        </thead>
+                        <tbody id="player-data" class="divide-y divide-gray-200">
+                            </tbody>
+                    </table>
+                </main>
+            </div>
         </div>
 
         <!-- Detail Page View (Player Profile) -->
-        <div id="detail-page" class="hidden">
+        <div id="detail-page" class="hidden p-4 sm:p-6 lg:p-8">
             <button id="back-btn" class="mb-6 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg flex items-center transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                 Back to Cheat Sheet
             </button>
             <div id="player-header" class="text-center mb-6"></div>
             
-            <!-- Profile Tabs -->
             <div class="mb-4 flex justify-center border-b border-gray-700">
                 <button class="profile-tab py-2 px-4 text-gray-400 hover:text-white border-b-2 border-transparent hover:border-blue-500 transition" data-tab="key-stats">Key Stats</button>
                 <button class="profile-tab py-2 px-4 text-gray-400 hover:text-white border-b-2 border-transparent hover:border-blue-500 transition" data-tab="schedule">2025 Schedule</button>
@@ -110,48 +213,127 @@
                 <button class="profile-tab py-2 px-4 text-gray-400 hover:text-white border-b-2 border-transparent hover:border-blue-500 transition" data-tab="game-log">Game Log</button>
             </div>
 
-            <!-- Tab Content -->
             <div id="key-stats-content" class="tab-content"></div>
             <div id="schedule-content" class="tab-content hidden"></div>
             <div id="season-stats-content" class="tab-content hidden"></div>
             <div id="game-log-content" class="tab-content hidden"></div>
         </div>
         
-        <!-- Loader -->
         <div id="loader-container" class="hidden text-center py-10">
             <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-600 h-32 w-32 mx-auto"></div>
             <p class="mt-4 text-lg text-gray-400">Fetching player data...</p>
         </div>
 
-        <!-- Error Message -->
         <div id="error-message-container" class="hidden bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-lg text-center" role="alert">
             <p id="error-text"></p>
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // DOM Element References
-            const mainPage = document.getElementById('main-page');
-            const detailPage = document.getElementById('detail-page');
-            const searchBar = document.getElementById('search-bar');
-            const filterButtons = document.querySelectorAll('.filter-btn');
-            const playerTableBody = document.getElementById('player-data');
-            const playerHeader = document.getElementById('player-header');
-            const backBtn = document.getElementById('back-btn');
-            const loaderContainer = document.getElementById('loader-container');
-            const errorMessageContainer = document.getElementById('error-message-container');
-            const errorText = document.getElementById('error-text');
-            const profileTabs = document.querySelectorAll('.profile-tab');
-            const tabContents = document.querySelectorAll('.tab-content');
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, onSnapshot, query, orderBy, writeBatch, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-            let currentPositionFilter = 'ALL';
-            let players = []; 
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        
+        const mainPage = document.getElementById('main-page');
+        const detailPage = document.getElementById('detail-page');
+        const searchBar = document.getElementById('search-bar');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const playerTableBody = document.getElementById('player-data');
+        const playerHeader = document.getElementById('player-header');
+        const backBtn = document.getElementById('back-btn');
+        const loaderContainer = document.getElementById('loader-container');
+        const errorMessageContainer = document.getElementById('error-message-container');
+        const errorText = document.getElementById('error-text');
+        const profileTabs = document.querySelectorAll('.profile-tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const setupContainer = document.getElementById('setup-container');
+        const seedDbBtn = document.getElementById('seed-db-btn');
+        const seedProgress = document.getElementById('seed-progress');
+        const appContent = document.getElementById('app-content');
 
-            const TEAM_ABBREVIATIONS = { 'ARI': 'Arizona Cardinals', 'ATL': 'Atlanta Falcons', 'BAL': 'Baltimore Ravens', 'BUF': 'Buffalo Bills', 'CAR': 'Carolina Panthers', 'CHI': 'Chicago Bears', 'CIN': 'Cincinnati Bengals', 'CLE': 'Cleveland Browns', 'DAL': 'Dallas Cowboys', 'DEN': 'Denver Broncos', 'DET': 'Detroit Lions', 'GB': 'Green Bay Packers', 'HOU': 'Houston Texans', 'IND': 'Indianapolis Colts', 'JAX': 'Jacksonville Jaguars', 'KC': 'Kansas City Chiefs', 'LV': 'Las Vegas Raiders', 'LAC': 'Los Angeles Chargers', 'LAR': 'Los Angeles Rams', 'MIA': 'Miami Dolphins', 'MIN': 'Minnesota Vikings', 'NE': 'New England Patriots', 'NO': 'New Orleans Saints', 'NYG': 'New York Giants', 'NYJ': 'New York Jets', 'PHI': 'Philadelphia Eagles', 'PIT': 'Pittsburgh Steelers', 'SF': 'San Francisco 49ers', 'SEA': 'Seattle Seahawks', 'TB': 'Tampa Bay Buccaneers', 'TEN': 'Tennessee Titans', 'WAS': 'Washington Commanders' };
-            const ESPN_TEAM_NAMES = { 'ARI': 'ari', 'ATL': 'atl', 'BAL': 'bal', 'BUF': 'buf', 'CAR': 'car', 'CHI': 'chi', 'CIN': 'cin', 'CLE': 'cle', 'DAL': 'dal', 'DEN': 'den', 'DET': 'det', 'GB': 'gb', 'HOU': 'hou', 'IND': 'ind', 'JAX': 'jax', 'KC': 'kc', 'LV': 'lv', 'LAC': 'lac', 'LAR': 'lar', 'MIA': 'mia', 'MIN': 'min', 'NE': 'ne', 'NO': 'no', 'NYG': 'nyg', 'NYJ': 'nyj', 'PHI': 'phi', 'PIT': 'pit', 'SF': 'sf', 'SEA': 'sea', 'TB': 'tb', 'TEN': 'ten', 'WAS': 'wsh' };
+        let currentPositionFilter = 'ALL';
+        let allPlayers = []; 
+        let userId = null;
 
-            const playersRaw = [
+        const TEAM_ABBREVIATIONS = { 'ARI': 'Arizona Cardinals', 'ATL': 'Atlanta Falcons', 'BAL': 'Baltimore Ravens', 'BUF': 'Buffalo Bills', 'CAR': 'Carolina Panthers', 'CHI': 'Chicago Bears', 'CIN': 'Cincinnati Bengals', 'CLE': 'Cleveland Browns', 'DAL': 'Dallas Cowboys', 'DEN': 'Denver Broncos', 'DET': 'Detroit Lions', 'GB': 'Green Bay Packers', 'HOU': 'Houston Texans', 'IND': 'Indianapolis Colts', 'JAX': 'Jacksonville Jaguars', 'KC': 'Kansas City Chiefs', 'LV': 'Las Vegas Raiders', 'LAC': 'Los Angeles Chargers', 'LAR': 'Los Angeles Rams', 'MIA': 'Miami Dolphins', 'MIN': 'Minnesota Vikings', 'NE': 'New England Patriots', 'NO': 'New Orleans Saints', 'NYG': 'New York Giants', 'NYJ': 'New York Jets', 'PHI': 'Philadelphia Eagles', 'PIT': 'Pittsburgh Steelers', 'SF': 'San Francisco 49ers', 'SEA': 'Seattle Seahawks', 'TB': 'Tampa Bay Buccaneers', 'TEN': 'Tennessee Titans', 'WAS': 'Washington Commanders' };
+        
+        const NFL_SCHEDULE_2025 = {
+            'ARI': [ { "date": "Sun, Sep 7", "opponent": "@ NO", "time": "1:00 PM" }, { "date": "Sun, Sep 14", "opponent": "vs CAR", "time": "4:05 PM" }, { "date": "Sun, Sep 21", "opponent": "@ SF", "time": "4:25 PM" }, { "date": "Thu, Sep 25", "opponent": "vs SEA", "time": "8:15 PM" }, { "date": "Sun, Oct 5", "opponent": "vs TEN", "time": "4:05 PM" }, { "date": "Sun, Oct 12", "opponent": "@ IND", "time": "1:00 PM" }, { "date": "Sun, Oct 19", "opponent": "vs GB", "time": "4:25 PM" }, { "date": "Sun, Oct 26", "opponent": "BYE", "time": "" }, { "date": "Mon, Nov 3", "opponent": "@ DAL", "time": "8:15 PM" }, { "date": "Sun, Nov 9", "opponent": "@ SEA", "time": "4:05 PM" }, { "date": "Sun, Nov 16", "opponent": "vs SF", "time": "4:05 PM" }, { "date": "Sun, Nov 23", "opponent": "vs JAX", "time": "4:05 PM" }, { "date": "Sun, Nov 30", "opponent": "@ TB", "time": "1:00 PM" }, { "date": "Sun, Dec 7", "opponent": "vs LAR", "time": "4:25 PM" }, { "date": "Sun, Dec 14", "opponent": "@ HOU", "time": "1:00 PM" }, { "date": "Sun, Dec 21", "opponent": "vs ATL", "time": "4:05 PM" }, { "date": "TBD", "opponent": "@ CIN", "time": "TBD" }, { "date": "TBD", "opponent": "@ LAR", "time": "TBD" } ],
+            'ATL': [ { "date": "Sun, Sep 7", "opponent": "vs TB", "time": "1:00 PM" }, { "date": "Sun, Sep 14", "opponent": "@ MIN", "time": "8:20 PM" }, { "date": "Sun, Sep 21", "opponent": "@ CAR", "time": "1:00 PM" }, { "date": "Sun, Sep 28", "opponent": "vs WAS", "time": "1:00 PM" }, { "date": "Sun, Oct 5", "opponent": "BYE", "time": "" }, { "date": "Mon, Oct 13", "opponent": "vs BUF", "time": "7:15 PM" }, { "date": "Sun, Oct 19", "opponent": "@ SF", "time": "8:20 PM" }, { "date": "Sun, Oct 26", "opponent": "vs MIA", "time": "1:00 PM" }, { "date": "Sun, Nov 2", "opponent": "@ NE", "time": "1:00 PM" }, { "date": "Sun, Nov 9", "opponent": "@ IND (Berlin)", "time": "9:30 AM" }, { "date": "Sun, Nov 16", "opponent": "vs CAR", "time": "1:00 PM" }, { "date": "Sun, Nov 23", "opponent": "@ NO", "time": "4:25 PM" }, { "date": "Sun, Nov 30", "opponent": "@ NYJ", "time": "1:00 PM" }, { "date": "Sun, Dec 7", "opponent": "vs SEA", "time": "1:00 PM" }, { "date": "Thu, Dec 11", "opponent": "@ TB", "time": "8:15 PM" }, { "date": "Sun, Dec 21", "opponent": "@ ARI", "time": "4:05 PM" }, { "date": "Mon, Dec 29", "opponent": "vs LAR", "time": "8:15 PM" }, { "date": "TBD", "opponent": "vs NO", "time": "TBD" } ],
+            'BAL': [ { "date": "Sun, Sep 7", "opponent": "@ BUF", "time": "8:20 PM" }, { "date": "Sun, Sep 14", "opponent": "vs CLE", "time": "1:00 PM" }, { "date": "Mon, Sep 22", "opponent": "vs DET", "time": "8:15 PM" }, { "date": "Sun, Sep 28", "opponent": "@ KC", "time": "4:25 PM" }, { "date": "Sun, Oct 5", "opponent": "vs HOU", "time": "1:00 PM" }, { "date": "Sun, Oct 12", "opponent": "vs LAR", "time": "1:00 PM" }, { "date": "Sun, Oct 19", "opponent": "BYE", "time": "" }, { "date": "Sun, Oct 26", "opponent": "vs CHI", "time": "1:00 PM" }, { "date": "Thu, Oct 30", "opponent": "@ MIA", "time": "8:15 PM" }, { "date": "Sun, Nov 9", "opponent": "@ MIN", "time": "1:00 PM" }, { "date": "Sun, Nov 16", "opponent": "@ CLE", "time": "4:25 PM" }, { "date": "Sun, Nov 23", "opponent": "vs NYJ", "time": "1:00 PM" }, { "date": "Thu, Nov 27", "opponent": "vs CIN", "time": "8:20 PM" }, { "date": "Sun, Dec 7", "opponent": "vs PIT", "time": "1:00 PM" }, { "date": "Sun, Dec 14", "opponent": "@ CIN", "time": "1:00 PM" }, { "date": "Sun, Dec 21", "opponent": "vs NE", "time": "1:00 PM" }, { "date": "TBD", "opponent": "@ GB", "time": "TBD" }, { "date": "TBD", "opponent": "@ PIT", "time": "TBD" } ],
+            'BUF': [ { "date": "Sun, Sep 7", "opponent": "vs BAL", "time": "8:20 PM" }, { "date": "Sun, Sep 14", "opponent": "@ NYJ", "time": "1:00 PM" }, { "date": "Thu, Sep 18", "opponent": "vs MIA", "time": "8:15 PM" }, { "date": "Sun, Sep 28", "opponent": "vs NO", "time": "1:00 PM" }, { "date": "Sun, Oct 5", "opponent": "vs NE", "time": "8:20 PM" }, { "date": "Mon, Oct 13", "opponent": "@ ATL", "time": "7:15 PM" }, { "date": "Sun, Oct 19", "opponent": "BYE", "time": "" }, { "date": "Sun, Oct 26", "opponent": "@ CAR", "time": "1:00 PM" }, { "date": "Sun, Nov 2", "opponent": "vs KC", "time": "4:25 PM" }, { "date": "Sun, Nov 9", "opponent": "@ MIA", "time": "1:00 PM" }, { "date": "Sun, Nov 16", "opponent": "vs TB", "time": "1:00 PM" }, { "date": "Thu, Nov 20", "opponent": "@ HOU", "time": "8:15 PM" }, { "date": "Sun, Nov 30", "opponent": "@ PIT", "time": "4:25 PM" }, { "date": "Sun, Dec 7", "opponent": "vs CIN", "time": "4:25 PM" }, { "date": "Sun, Dec 14", "opponent": "@ NE", "time": "1:00 PM" }, { "date": "Sun, Dec 21", "opponent": "@ CLE", "time": "1:00 PM" }, { "date": "Sun, Dec 28", "opponent": "vs PHI", "time": "4:25 PM" }, { "date": "TBD", "opponent": "vs NYJ", "time": "TBD" } ],
+            'CAR': [ { "date": "Sun, Sep 7", "opponent": "@ JAX", "time": "1:00 PM" }, { "date": "Sun, Sep 14", "opponent": "@ ARI", "time": "4:05 PM" }, { "date": "Sun, Sep 21", "opponent": "vs ATL", "time": "1:00 PM" }, { "date": "Sun, Sep 28", "opponent": "@ NE", "time": "1:00 PM" }, { "date": "Sun, Oct 5", "opponent": "vs MIA", "time": "1:00 PM" }, { "date": "Sun, Oct 12", "opponent": "vs DAL", "time": "1:00 PM" }, { "date": "Sun, Oct 19", "opponent": "@ NYJ", "time": "1:00 PM" }, { "date": "Sun, Oct 26", "opponent": "vs BUF", "time": "1:00 PM" }, { "date": "Sun, Nov 2", "opponent": "@ GB", "time": "1:00 PM" }, { "date": "Sun, Nov 9", "opponent": "vs NO", "time": "1:00 PM" }, { "date": "Sun, Nov 16", "opponent": "@ ATL", "time": "1:00 PM" }, { "date": "Mon, Nov 24", "opponent": "@ SF", "time": "8:15 PM" }, { "date": "Sun, Nov 30", "opponent": "vs LAR", "time": "1:00 PM" }, { "date": "Sun, Dec 7", "opponent": "BYE", "time": "" }, { "date": "Sun, Dec 14", "opponent": "@ NO", "time": "4:25 PM" }, { "date": "Sun, Dec 21", "opponent": "vs TB", "time": "1:00 PM" }, { "date": "TBD", "opponent": "vs SEA", "time": "TBD" }, { "date": "TBD", "opponent": "@ TB", "time": "TBD" } ],
+            'CHI': [ { "date": "Mon, Sep 8", "opponent": "vs MIN", "time": "8:15 PM" }, { "date": "Sun, Sep 14", "opponent": "@ DET", "time": "1:00 PM" }, { "date": "Sun, Sep 21", "opponent": "vs DAL", "time": "4:25 PM" }, { "date": "Sun, Sep 28", "opponent": "@ LV", "time": "4:25 PM" }, { "date": "Sun, Oct 5", "opponent": "BYE", "time": "" }, { "date": "Sun, Oct 12", "opponent": "@ WAS", "time": "1:00 PM" }, { "date": "Sun, Oct 19", "opponent": "vs NO", "time": "1:00 PM" }, { "date": "Sun, Oct 26", "opponent": "@ BAL", "time": "1:00 PM" }, { "date": "Sun, Nov 2", "opponent": "@ CIN", "time": "1:00 PM" }, { "date": "Sun, Nov 9", "opponent": "vs NYG", "time": "1:00 PM" }, { "date": "Sun, Nov 16", "opponent": "@ MIN", "time": "1:00 PM" }, { "date": "Sun, Nov 23", "opponent": "vs PIT", "time": "1:00 PM" }, { "date": "Fri, Nov 28", "opponent": "@ PHI", "time": "3:00 PM" }, { "date": "Sun, Dec 7", "opponent": "@ GB", "time": "1:00 PM" }, { "date": "Sun, Dec 14", "opponent": "vs CLE", "time": "1:00 PM" }, { "date": "TBD", "opponent": "vs GB", "time": "TBD" }, { "date": "TBD", "opponent": "@ SF", "time": "TBD" }, { "date": "TBD", "opponent": "vs DET", "time": "TBD" } ],
+            'CIN': [ { "date": "Sun, Sep 7", "opponent": "@ CLE", "time": "1:00 PM" }, { "date": "Sun, Sep 14", "opponent": "vs JAX", "time": "1:00 PM" }, { "date": "Sun, Sep 21", "opponent": "@ MIN", "time": "1:00 PM" }, { "date": "Mon, Sep 29", "opponent": "@ DEN", "time": "8:15 PM" }, { "date": "Sun, Oct 5", "opponent": "vs DET", "time": "4:25 PM" }, { "date": "Sun, Oct 12", "opponent": "@ GB", "time": "1:00 PM" }, { "date": "Sun, Oct 19", "opponent": "vs PIT", "time": "1:00 PM" }, { "date": "Sun, Oct 26", "opponent": "vs NYJ", "time": "1:00 PM" }, { "date": "Sun, Nov 2", "opponent": "vs CHI", "time": "1:00 PM" }, { "date": "Sun, Nov 9", "opponent": "BYE", "time": "" }, { "date": "Sun, Nov 16", "opponent": "@ PIT", "time": "1:00 PM" }, { "date": "Sun, Nov 23", "opponent": "vs NE", "time": "1:00 PM" }, { "date": "Thu, Nov 27", "opponent": "@ BAL", "time": "8:20 PM" }, { "date": "Sun, Dec 7", "opponent": "@ BUF", "time": "4:25 PM" }, { "date": "Sun, Dec 14", "opponent": "vs BAL", "time": "1:00 PM" }, { "date": "Sun, Dec 21", "opponent": "@ MIA", "time": "1:00 PM" }, { "date": "TBD", "opponent": "vs ARI", "time": "TBD" }, { "date": "TBD", "opponent": "vs CLE", "time": "TBD" } ],
+            'CLE': [ { "date": "Sun, Sep 7", "opponent": "vs CIN", "time": "1:00 PM" }, { "date": "Sun, Sep 14", "opponent": "@ BAL", "time": "1:00 PM" }, { "date": "Sun, Sep 21", "opponent": "vs GB", "time": "1:00 PM" }, { "date": "Sun, Sep 28", "opponent": "@ DET", "time": "1:00 PM" }, { "date": "Sun, Oct 5", "opponent": "vs MIN (London)", "time": "9:30 AM" }, { "date": "Sun, Oct 12", "opponent": "@ PIT", "time": "1:00 PM" }, { "date": "Sun, Oct 19", "opponent": "vs MIA", "time": "1:00 PM" }, { "date": "Sun, Oct 26", "opponent": "@ NE", "time": "1:00 PM" }, { "date": "Sun, Nov 2", "opponent": "BYE", "time": "" }, { "date": "Sun, Nov 9", "opponent": "@ NYJ", "time": "1:00 PM" }, { "date": "Sun, Nov 16", "opponent": "vs BAL", "time": "4:25 PM" }, { "date": "Sun, Nov 23", "opponent": "@ LV", "time": "4:05 PM" }, { "date": "Sun, Nov 30", "opponent": "vs SF", "time": "1:00 PM" }, { "date": "Sun, Dec 7", "opponent": "vs TEN", "time": "1:00 PM" }, { "date": "Sun, Dec 14", "opponent": "@ CHI", "time": "1:00 PM" }, { "date": "Sun, Dec 21", "opponent": "vs BUF", "time": "1:00 PM" }, { "date": "TBD", "opponent": "vs PIT", "time": "TBD" }, { "date": "TBD", "opponent": "@ CIN", "time": "TBD" } ],
+            'DAL': [ { "date": "Thu, Sep 4", "opponent": "@ PHI", "time": "8:20 PM" }, { "date": "Sun, Sep 14", "opponent": "vs NYG", "time": "1:00 PM" }, { "date": "Sun, Sep 21", "opponent": "@ CHI", "time": "4:25 PM" }, { "date": "Sun, Sep 28", "opponent": "vs GB", "time": "8:20 PM" }, { "date": "Sun, Oct 5", "opponent": "@ NYJ", "time": "1:00 PM" }, { "date": "Sun, Oct 12", "opponent": "@ CAR", "time": "1:00 PM" }, { "date": "Sun, Oct 19", "opponent": "vs WAS", "time": "1:00 PM" }, { "date": "Sun, Oct 26", "opponent": "@ DEN", "time": "4:25 PM" }, { "date": "Mon, Nov 3", "opponent": "vs ARI", "time": "8:15 PM" }, { "date": "Sun, Nov 9", "opponent": "BYE", "time": "" }, { "date": "Sun, Nov 16", "opponent": "@ LV", "time": "4:25 PM" }, { "date": "Sun, Nov 23", "opponent": "vs PHI", "time": "4:25 PM" }, { "date": "Thu, Nov 27", "opponent": "vs KC", "time": "4:30 PM" }, { "date": "Sun, Dec 7", "opponent": "@ DET", "time": "1:00 PM" }, { "date": "Sun, Dec 14", "opponent": "vs MIN", "time": "1:00 PM" }, { "date": "Sun, Dec 21", "opponent": "vs LAC", "time": "4:25 PM" }, { "date": "Thu, Dec 25", "opponent": "@ WAS", "time": "1:00 PM" }, { "date": "TBD", "opponent": "@ NYG", "time": "TBD" } ],
+            'DEN': [ { "date": "Sun, Sep 7", "opponent": "vs TEN", "time": "4:05 PM" }, { "date": "Sun, Sep 14", "opponent": "@ IND", "time": "4:05 PM" }, { "date": "Sun, Sep 21", "opponent": "@ LAC", "time": "4:05 PM" }, { "date": "Mon, Sep 29", "opponent": "vs CIN", "time": "8:15 PM" }, { "date": "Sun, Oct 5", "opponent": "@ PHI", "time": "1:00 PM" }, { "date": "Sun, Oct 12", "opponent": "@ NYJ (London)", "time": "9:30 AM" }, { "date": "Sun, Oct 19", "opponent": "vs NYG", "time": "4:05 PM" }, { "date": "Sun, Oct 26", "opponent": "vs DAL", "time": "4:25 PM" }, { "date": "Sun, Nov 2", "opponent": "@ HOU", "time": "1:00 PM" }, { "date": "Sun, Nov 9", "opponent": "vs LV", "time": "4:05 PM" }, { "date": "Sun, Nov 16", "opponent": "vs KC", "time": "4:25 PM" }, { "date": "Sun, Nov 23", "opponent": "BYE", "time": "" }, { "date": "Sun, Nov 30", "opponent": "@ WAS", "time": "1:00 PM" }, { "date": "Sun, Dec 7", "opponent": "@ LV", "time": "4:05 PM" }, { "date": "Sun, Dec 14", "opponent": "vs GB", "time": "4:25 PM" }, { "date": "Sun, Dec 21", "opponent": "vs JAX", "time": "4:05 PM" }, { "date": "Thu, Dec 25", "opponent": "@ KC", "time": "8:15 PM" }, { "date": "TBD", "opponent": "vs LAC", "time": "TBD" } ],
+            'DET': [ { "date": "Sun, Sep 7", "opponent": "@ GB", "time": "4:25 PM" }, { "date": "Sun, Sep 14", "opponent": "vs CHI", "time": "1:00 PM" }, { "date": "Mon, Sep 22", "opponent": "@ BAL", "time": "8:15 PM" }, { "date": "Sun, Sep 28", "opponent": "vs CLE", "time": "1:00 PM" }, { "date": "Sun, Oct 5", "opponent": "@ CIN", "time": "4:25 PM" }, { "date": "Sun, Oct 12", "opponent": "@ KC", "time": "8:20 PM" }, { "date": "Sun, Oct 19", "opponent": "vs TB", "time": "1:00 PM" }, { "date": "Sun, Oct 26", "opponent": "BYE", "time": "" }, { "date": "Sun, Nov 2", "opponent": "vs MIN", "time": "1:00 PM" }, { "date": "Sun, Nov 9", "opponent": "@ WAS", "time": "1:00 PM" }, { "date": "Sun, Nov 16", "opponent": "@ PHI", "time": "8:20 PM" }, { "date": "Sun, Nov 23", "opponent": "vs NYG", "time": "1:00 PM" }, { "date": "Thu, Nov 27", "opponent": "vs GB", "time": "12:30 PM" }, { "date": "Sun, Dec 7", "opponent": "vs DAL", "time": "1:00 PM" }, { "date": "Sun, Dec 14", "opponent": "@ LAR", "time": "4:25 PM" }, { "date": "Sun, Dec 21", "opponent": "vs PIT", "time": "1:00 PM" }, { "date": "Thu, Dec 25", "opponent": "@ MIN", "time": "4:30 PM" }, { "date": "TBD", "opponent": "@ CHI", "time": "TBD" } ],
+            'GB': [ { "date": "Sun, Sep 7", "opponent": "vs DET", "time": "4:25 PM" }, { "date": "Thu, Sep 11", "opponent": "vs WAS", "time": "8:15 PM" }, { "date": "Sun, Sep 21", "opponent": "@ CLE", "time": "1:00 PM" }, { "date": "Sun, Sep 28", "opponent": "@ DAL", "time": "8:20 PM" }, { "date": "Sun, Oct 5", "opponent": "BYE", "time": "" }, { "date": "Sun, Oct 12", "opponent": "vs CIN", "time": "1:00 PM" }, { "date": "Sun, Oct 19", "opponent": "@ ARI", "time": "4:25 PM" }, { "date": "Sun, Oct 26", "opponent": "@ PIT", "time": "4:25 PM" }, { "date": "Sun, Nov 2", "opponent": "vs CAR", "time": "1:00 PM" }, { "date": "Mon, Nov 10", "opponent": "vs PHI", "time": "8:15 PM" }, { "date": "Sun, Nov 16", "opponent": "@ NYG", "time": "1:00 PM" }, { "date": "Sun, Nov 23", "opponent": "vs MIN", "time": "1:00 PM" }, { "date": "Thu, Nov 27", "opponent": "@ DET", "time": "12:30 PM" }, { "date": "Sun, Dec 7", "opponent": "vs CHI", "time": "1:00 PM" }, { "date": "Sun, Dec 14", "opponent": "@ DEN", "time": "4:25 PM" }, { "date": "TBD", "opponent": "@ CHI", "time": "TBD" }, { "date": "TBD", "opponent": "vs BAL", "time": "TBD" }, { "date": "TBD", "opponent": "@ MIN", "time": "TBD" } ],
+            'HOU': [ { "date": "Sun, Sep 7", "opponent": "@ LAR", "time": "4:25 PM" }, { "date": "Mon, Sep 15", "opponent": "vs TB", "time": "7:00 PM" }, { "date": "Sun, Sep 21", "opponent": "@ JAX", "time": "1:00 PM" }, { "date": "Sun, Sep 28", "opponent": "vs TEN", "time": "1:00 PM" }, { "date": "Sun, Oct 5", "opponent": "@ BAL", "time": "1:00 PM" }, { "date": "Sun, Oct 12", "opponent": "BYE", "time": "" }, { "date": "Sun, Oct 19", "opponent": "@ SEA", "time": "4:05 PM" }, { "date": "Sun, Oct 26", "opponent": "vs SF", "time": "1:00 PM" }, { "date": "Sun, Nov 2", "opponent": "vs DEN", "time": "1:00 PM" }, { "date": "Sun, Nov 9", "opponent": "@ IND", "time": "1:00 PM" }, { "date": "Sun, Nov 16", "opponent": "@ TEN", "time": "1:00 PM" }, { "date": "Thu, Nov 20", "opponent": "vs BUF", "time": "8:15 PM" }, { "date": "Sun, Nov 30", "opponent": "vs JAX", "time": "1:00 PM" }, { "date": "Sun, Dec 7", "opponent": "@ NE", "time": "1:00 PM" }, { "date": "Sun, Dec 14", "opponent": "vs ARI", "time": "1:00 PM" }, { "date": "Sun, Dec 21", "opponent": "vs IND", "time": "1:00 PM" }, { "date": "TBD", "opponent": "@ NYJ", "time": "TBD" }, { "date": "TBD", "opponent": "@ MIA", "time": "TBD" } ],
+            'IND': [ { "date": "Sun, Sep 7", "opponent": "vs MIA", "time": "1:00 PM" }, { "date": "Sun, Sep 14", "opponent": "vs DEN", "time": "4:05 PM" }, { "date": "Sun, Sep 21", "opponent": "@ TEN", "time": "1:00 PM" }, { "date": "Sun, Sep 28", "opponent": "@ LAR", "time": "4:05 PM" }, { "date": "Sun, Oct 5", "opponent": "vs LV", "time": "1:00 PM" }, { "date": "Sun, Oct 12", "opponent": "vs ARI", "time": "1:00 PM" }, { "date": "Sun, Oct 19", "opponent": "@ JAX", "time": "1:00 PM" }, { "date": "Sun, Oct 26", "opponent": "vs TEN", "time": "1:00 PM" }, { "date": "Sun, Nov 2", "opponent": "BYE", "time": "" }, { "date": "Sun, Nov 9", "opponent": "vs ATL (Berlin)", "time": "9:30 AM" }, { "date": "Sun, Nov 16", "opponent": "vs HOU", "time": "1:00 PM" }, { "date": "Sun, Nov 23", "opponent": "@ JAX", "time": "8:20 PM" }, { "date": "Sun, Nov 30", "opponent": "@ NYG", "time": "1:00 PM" }, { "date": "Sun, Dec 7", "opponent": "@ SF", "time": "4:05 PM" }, { "date": "Sun, Dec 14", "opponent": "vs SEA", "time": "1:00 PM" }, { "date": "Sun, Dec 21", "opponent": "@ HOU", "time": "1:00 PM" }, { "date": "TBD", "opponent": "vs NYJ", "time": "TBD" }, { "date": "TBD", "opponent": "vs NE", "time": "TBD" } ],
+            'JAX': [ { "date": "Sun, Sep 7", "opponent": "vs CAR", "time": "1:00 PM" }, { "date": "Sun, Sep 14", "opponent": "@ CIN", "time": "1:00 PM" }, { "date": "Sun, Sep 21", "opponent": "vs HOU", "time": "1:00 PM" }, { "date": "Sun, Sep 28", "opponent": "@ SF", "time": "4:05 PM" }, { "date": "Mon, Oct 6", "opponent": "vs KC", "time": "8:15 PM" }, { "date": "Sun, Oct 12", "opponent": "vs SEA", "time": "1:00 PM" }, { "date": "Sun, Oct 19", "opponent": "vs LAR (London)", "time": "9:30 AM" }, { "date": "Sun, Oct 26", "opponent": "@ IND", "time": "1:00 PM" }, { "date": "Sun, Nov 2", "opponent": "@ TEN", "time": "1:00 PM" }, { "date": "Sun, Nov 9", "opponent": "vs TEN", "time": "4:05 PM" }, { "date": "Sun, Nov 16", "opponent": "BYE", "time": "" }, { "date": "Sun, Nov 23", "opponent": "vs IND", "time": "8:20 PM" }, { "date": "Sun, Nov 30", "opponent": "@ HOU", "time": "1:00 PM" }, { "date": "Sun, Dec 7", "opponent": "@ LAR", "time": "4:25 PM" }, { "date": "Sun, Dec 14", "opponent": "vs NYJ", "time": "1:00 PM" }, { "date": "Sun, Dec 21", "opponent": "@ DEN", "time": "4:05 PM" }, { "date": "TBD", "opponent": "vs NE", "time": "TBD" }, { "date": "TBD", "opponent": "vs MIA", "time": "TBD" } ],
+            'KC': [ { "date": "Fri, Sep 5", "opponent": "@ LAC (Sao Paulo)", "time": "8:00 PM" }, { "date": "Sun, Sep 14", "opponent": "vs PHI", "time": "4:25 PM" }, { "date": "Sun, Sep 21", "opponent": "@ NYG", "time": "8:20 PM" }, { "date": "Sun, Sep 28", "opponent": "vs BAL", "time": "4:25 PM" }, { "date": "Mon, Oct 6", "opponent": "@ JAX", "time": "8:15 PM" }, { "date": "Sun, Oct 12", "opponent": "vs DET", "time": "8:20 PM" }, { "date": "Sun, Oct 19", "opponent": "@ LV", "time": "4:25 PM" }, { "date": "Sun, Oct 26", "opponent": "@ TB", "time": "4:25 PM" }, { "date": "Sun, Nov 2", "opponent": "@ BUF", "time": "4:25 PM" }, { "date": "Sun, Nov 9", "opponent": "vs LAC", "time": "1:00 PM" }, { "date": "Sun, Nov 16", "opponent": "@ DEN", "time": "4:25 PM" }, { "date": "Sun, Nov 23", "opponent": "vs NO", "time": "1:00 PM" }, { "date": "Thu, Nov 27", "opponent": "@ DAL", "time": "4:30 PM" }, { "date": "Sun, Dec 7", "opponent": "BYE", "time": "" }, { "date": "Sun, Dec 14", "opponent": "@ ATL", "time": "1:00 PM" }, { "date": "Sun, Dec 21", "opponent": "vs LV", "time": "1:00 PM" }, { "date": "Thu, Dec 25", "opponent": "vs DEN", "time": "8:15 PM" }, { "date": "TBD", "opponent": "@ PIT", "time": "TBD" } ],
+            'LAC': [ { "date": "Fri, Sep 5", "opponent": "vs KC (Sao Paulo)", "time": "8:00 PM" }, { "date": "Mon, Sep 15", "opponent": "@ LV", "time": "10:00 PM" }, { "date": "Sun, Sep 21", "opponent": "vs DEN", "time": "4:05 PM" }, { "date": "Sun, Sep 28", "opponent": "@ NYG", "time": "1:00 PM" }, { "date": "Sun, Oct 5", "opponent": "vs WAS", "time": "4:25 PM" }, { "date": "Sun, Oct 12", "opponent": "@ MIA", "time": "1:00 PM" }, { "date": "Sun, Oct 19", "opponent": "@ PIT", "time": "8:20 PM" }, { "date": "Sun, Oct 26", "opponent": "vs NO", "time": "4:05 PM" }, { "date": "Sun, Nov 2", "opponent": "BYE", "time": "" }, { "date": "Sun, Nov 9", "opponent": "@ KC", "time": "1:00 PM" }, { "date": "Sun, Nov 16", "opponent": "@ ATL", "time": "1:00 PM" }, { "date": "Sun, Nov 23", "opponent": "vs TB", "time": "4:05 PM" }, { "date": "Sun, Nov 30", "opponent": "vs LV", "time": "4:05 PM" }, { "date": "Sun, Dec 7", "opponent": "@ CAR", "time": "1:00 PM" }, { "date": "Mon, Dec 15", "opponent": "vs PHI", "time": "8:15 PM" }, { "date": "Sun, Dec 21", "opponent": "@ DAL", "time": "4:25 PM" }, { "date": "TBD", "opponent": "vs CIN", "time": "TBD" }, { "date": "TBD", "opponent": "@ DEN", "time": "TBD" } ],
+            'LAR': [ { "date": "Sun, Sep 7", "opponent": "vs HOU", "time": "4:25 PM" }, { "date": "Sun, Sep 14", "opponent": "@ TEN", "time": "1:00 PM" }, { "date": "Sun, Sep 21", "opponent": "@ PHI", "time": "1:00 PM" }, { "date": "Sun, Sep 28", "opponent": "vs IND", "time": "4:05 PM" }, { "date": "Thu, Oct 2", "opponent": "vs SF", "time": "8:15 PM" }, { "date": "Sun, Oct 12", "opponent": "@ BAL", "time": "1:00 PM" }, { "date": "Sun, Oct 19", "opponent": "@ JAX (London)", "time": "9:30 AM" }, { "date": "Sun, Oct 26", "opponent": "vs MIN", "time": "4:25 PM" }, { "date": "Sun, Nov 2", "opponent": "@ SEA", "time": "4:25 PM" }, { "date": "Sun, Nov 9", "opponent": "BYE", "time": "" }, { "date": "Sun, Nov 16", "opponent": "@ SEA", "time": "4:25 PM" }, { "date": "Sun, Nov 23", "opponent": "@ NE", "time": "1:00 PM" }, { "date": "Sun, Nov 30", "opponent": "@ CAR", "time": "1:00 PM" }, { "date": "Sun, Dec 7", "opponent": "@ ARI", "time": "4:25 PM" }, { "date": "Sun, Dec 14", "opponent": "vs DET", "time": "4:25 PM" }, { "date": "Sun, Dec 21", "opponent": "@ SF", "time": "4:05 PM" }, { "date": "Mon, Dec 29", "opponent": "@ ATL", "time": "8:15 PM" }, { "date": "TBD", "opponent": "vs ARI", "time": "TBD" } ],
+            'LV': [ { "date": "Sun, Sep 7", "opponent": "@ NE", "time": "1:00 PM" }, { "date": "Mon, Sep 15", "opponent": "vs LAC", "time": "10:00 PM" }, { "date": "Sun, Sep 21", "opponent": "@ WAS", "time": "1:00 PM" }, { "date": "Sun, Sep 28", "opponent": "vs CHI", "time": "4:25 PM" }, { "date": "Sun, Oct 5", "opponent": "@ IND", "time": "1:00 PM" }, { "date": "Sun, Oct 12", "opponent": "vs TEN", "time": "4:05 PM" }, { "date": "Sun, Oct 19", "opponent": "vs KC", "time": "4:25 PM" }, { "date": "Sun, Oct 26", "opponent": "BYE", "time": "" }, { "date": "Sun, Nov 2", "opponent": "@ PIT", "time": "1:00 PM" }, { "date": "Sun, Nov 9", "opponent": "@ DEN", "time": "4:05 PM" }, { "date": "Sun, Nov 16", "opponent": "vs DAL", "time": "4:25 PM" }, { "date": "Sun, Nov 23", "opponent": "vs CLE", "time": "4:05 PM" }, { "date": "Sun, Nov 30", "opponent": "@ LAC", "time": "4:05 PM" }, { "date": "Sun, Dec 7", "opponent": "vs DEN", "time": "4:05 PM" }, { "date": "Sun, Dec 14", "opponent": "@ NO", "time": "1:00 PM" }, { "date": "Sun, Dec 21", "opponent": "@ KC", "time": "1:00 PM" }, { "date": "TBD", "opponent": "vs ATL", "time": "TBD" }, { "date": "TBD", "opponent": "@ TB", "time": "TBD" } ],
+            'MIA': [ { "date": "Sun, Sep 7", "opponent": "@ IND", "time": "1:00 PM" }, { "date": "Sun, Sep 14", "opponent": "vs NE", "time": "1:00 PM" }, { "date": "Thu, Sep 18", "opponent": "@ BUF", "time": "8:15 PM" }, { "date": "Mon, Sep 29", "opponent": "vs NYJ", "time": "7:15 PM" }, { "date": "Sun, Oct 5", "opponent": "@ CAR", "time": "1:00 PM" }, { "date": "Sun, Oct 12", "opponent": "vs LAC", "time": "1:00 PM" }, { "date": "Sun, Oct 19", "opponent": "@ CLE", "time": "1:00 PM" }, { "date": "Sun, Oct 26", "opponent": "@ ATL", "time": "1:00 PM" }, { "date": "Thu, Oct 30", "opponent": "vs BAL", "time": "8:15 PM" }, { "date": "Sun, Nov 9", "opponent": "vs BUF", "time": "1:00 PM" }, { "date": "Sun, Nov 16", "opponent": "vs WAS (Madrid)", "time": "9:30 AM" }, { "date": "Sun, Nov 23", "opponent": "BYE", "time": "" }, { "date": "Sun, Nov 30", "opponent": "vs NO", "time": "1:00 PM" }, { "date": "Sun, Dec 7", "opponent": "@ NYJ", "time": "1:00 PM" }, { "date": "Mon, Dec 15", "opponent": "@ PIT", "time": "8:15 PM" }, { "date": "Sun, Dec 21", "opponent": "vs CIN", "time": "1:00 PM" }, { "date": "Sun, Dec 28", "opponent": "vs TB", "time": "1:00 PM" }, { "date": "TBD", "opponent": "@ NE", "time": "TBD" } ],
+            'MIN': [ { "date": "Mon, Sep 8", "opponent": "@ CHI", "time": "8:15 PM" }, { "date": "Sun, Sep 14", "opponent": "vs ATL", "time": "8:20 PM" }, { "date": "Sun, Sep 21", "opponent": "vs CIN", "time": "1:00 PM" }, { "date": "Sun, Sep 28", "opponent": "@ PIT (Dublin)", "time": "9:30 AM" }, { "date": "Sun, Oct 5", "opponent": "@ CLE (London)", "time": "9:30 AM" }, { "date": "Sun, Oct 12", "opponent": "BYE", "time": "" }, { "date": "Sun, Oct 19", "opponent": "vs PHI", "time": "1:00 PM" }, { "date": "Sun, Oct 26", "opponent": "@ LAR", "time": "4:25 PM" }, { "date": "Sun, Nov 2", "opponent": "@ DET", "time": "1:00 PM" }, { "date": "Sun, Nov 9", "opponent": "vs BAL", "time": "1:00 PM" }, { "date": "Sun, Nov 16", "opponent": "vs CHI", "time": "1:00 PM" }, { "date": "Sun, Nov 23", "opponent": "@ GB", "time": "1:00 PM" }, { "date": "Sun, Nov 30", "opponent": "@ WAS", "time": "1:00 PM" }, { "date": "Sun, Dec 7", "opponent": "@ SEA", "time": "4:05 PM" }, { "date": "Sun, Dec 14", "opponent": "@ DAL", "time": "1:00 PM" }, { "date": "Sun, Dec 21", "opponent": "vs SF", "time": "1:00 PM" }, { "date": "Thu, Dec 25", "opponent": "vs DET", "time": "4:30 PM" }, { "date": "TBD", "opponent": "vs GB", "time": "TBD" } ],
+            'NE': [ { "date": "Sun, Sep 7", "opponent": "vs LV", "time": "1:00 PM" }, { "date": "Sun, Sep 14", "opponent": "@ MIA", "time": "1:00 PM" }, { "date": "Sun, Sep 21", "opponent": "vs PIT", "time": "1:00 PM" }, { "date": "Sun, Sep 28", "opponent": "vs CAR", "time": "1:00 PM" }, { "date": "Sun, Oct 5", "opponent": "@ BUF", "time": "8:20 PM" }, { "date": "Sun, Oct 12", "opponent": "@ NO", "time": "4:25 PM" }, { "date": "Sun, Oct 19", "opponent": "@ TEN", "time": "1:00 PM" }, { "date": "Sun, Oct 26", "opponent": "vs CLE", "time": "1:00 PM" }, { "date": "Sun, Nov 2", "opponent": "vs ATL", "time": "1:00 PM" }, { "date": "Sun, Nov 9", "opponent": "@ TB", "time": "1:00 PM" }, { "date": "Thu, Nov 13", "opponent": "vs NYJ", "time": "8:15 PM" }, { "date": "Sun, Nov 23", "opponent": "@ CIN", "time": "1:00 PM" }, { "date": "Mon, Dec 1", "opponent": "vs NYG", "time": "8:15 PM" }, { "date": "Sun, Dec 7", "opponent": "BYE", "time": "" }, { "date": "Sun, Dec 14", "opponent": "vs BUF", "time": "1:00 PM" }, { "date": "Sun, Dec 21", "opponent": "@ BAL", "time": "1:00 PM" }, { "date": "Sun, Dec 28", "opponent": "@ NYJ", "time": "1:00 PM" }, { "date": "TBD", "opponent": "vs MIA", "time": "TBD" } ],
+            'NO': [ { "date": "Sun, Sep 7", "opponent": "vs ARI", "time": "1:00 PM" }, { "date": "Sun, Sep 14", "opponent": "vs SF", "time": "1:00 PM" }, { "date": "Sun, Sep 21", "opponent": "@ SEA", "time": "4:05 PM" }, { "date": "Sun, Sep 28", "opponent": "@ BUF", "time": "1:00 PM" }, { "date": "Sun, Oct 5", "opponent": "vs NYG", "time": "1:00 PM" }, { "date": "Sun, Oct 12", "opponent": "vs NE", "time": "4:25 PM" }, { "date": "Sun, Oct 19", "opponent": "@ GB", "time": "1:00 PM" }, { "date": "Sun, Oct 26", "opponent": "@ LAC", "time": "4:05 PM" }, { "date": "Sun, Nov 2", "opponent": "vs TB", "time": "1:00 PM" }, { "date": "Sun, Nov 9", "opponent": "@ KC", "time": "1:00 PM" }, { "date": "Sun, Nov 16", "opponent": "BYE", "time": "" }, { "date": "Sun, Nov 23", "opponent": "vs ATL", "time": "4:25 PM" }, { "date": "Sun, Nov 30", "opponent": "@ MIA", "time": "1:00 PM" }, { "date": "Sun, Dec 7", "opponent": "@ CAR", "time": "1:00 PM" }, { "date": "Sun, Dec 14", "opponent": "vs LV", "time": "1:00 PM" }, { "date": "Sun, Dec 21", "opponent": "vs NYJ", "time": "1:00 PM" }, { "date": "TBD", "opponent": "@ WAS", "time": "TBD" }, { "date": "TBD", "opponent": "@ ATL", "time": "TBD" } ],
+            'NYG': [ { "date": "Sun, Sep 7", "opponent": "@ WAS", "time": "1:00 PM" }, { "date": "Sun, Sep 14", "opponent": "@ DAL", "time": "1:00 PM" }, { "date": "Sun, Sep 21", "opponent": "vs KC", "time": "8:20 PM" }, { "date": "Sun, Sep 28", "opponent": "vs LAC", "time": "1:00 PM" }, { "date": "Sun, Oct 5", "opponent": "@ NO", "time": "1:00 PM" }, { "date": "Thu, Oct 9", "opponent": "vs PHI", "time": "8:15 PM" }, { "date": "Sun, Oct 19", "opponent": "@ DEN", "time": "4:05 PM" }, { "date": "Sun, Oct 26", "opponent": "@ PHI", "time": "1:00 PM" }, { "date": "Sun, Nov 2", "opponent": "BYE", "time": "" }, { "date": "Sun, Nov 9", "opponent": "@ CHI", "time": "1:00 PM" }, { "date": "Sun, Nov 16", "opponent": "vs GB", "time": "1:00 PM" }, { "date": "Sun, Nov 23", "opponent": "@ DET", "time": "1:00 PM" }, { "date": "Mon, Dec 1", "opponent": "@ NE", "time": "8:15 PM" }, { "date": "Sun, Dec 7", "opponent": "vs IND", "time": "1:00 PM" }, { "date": "Sun, Dec 14", "opponent": "vs TB", "time": "1:00 PM" }, { "date": "Sun, Dec 21", "opponent": "@ ATL", "time": "1:00 PM" }, { "date": "TBD", "opponent": "vs WAS", "time": "TBD" }, { "date": "TBD", "opponent": "vs DAL", "time": "TBD" } ],
+            'NYJ': [ { "date": "Sun, Sep 7", "opponent": "vs PIT", "time": "1:00 PM" }, { "date": "Sun, Sep 14", "opponent": "vs BUF", "time": "1:00 PM" }, { "date": "Sun, Sep 21", "opponent": "@ TB", "time": "1:00 PM" }, { "date": "Mon, Sep 29", "opponent": "@ MIA", "time": "7:15 PM" }, { "date": "Sun, Oct 5", "opponent": "vs DAL", "time": "1:00 PM" }, { "date": "Sun, Oct 12", "opponent": "vs DEN (London)", "time": "9:30 AM" }, { "date": "Sun, Oct 19", "opponent": "vs CAR", "time": "1:00 PM" }, { "date": "Sun, Oct 26", "opponent": "@ CIN", "time": "1:00 PM" }, { "date": "Sun, Nov 2", "opponent": "BYE", "time": "" }, { "date": "Sun, Nov 9", "opponent": "vs CLE", "time": "1:00 PM" }, { "date": "Thu, Nov 13", "opponent": "@ NE", "time": "8:15 PM" }, { "date": "Sun, Nov 23", "opponent": "@ BAL", "time": "1:00 PM" }, { "date": "Sun, Nov 30", "opponent": "vs ATL", "time": "1:00 PM" }, { "date": "Sun, Dec 7", "opponent": "vs MIA", "time": "1:00 PM" }, { "date": "Sun, Dec 14", "opponent": "@ JAX", "time": "1:00 PM" }, { "date": "Sun, Dec 21", "opponent": "@ NO", "time": "1:00 PM" }, { "date": "Sun, Dec 28", "opponent": "vs NE", "time": "1:00 PM" }, { "date": "TBD", "opponent": "@ BUF", "time": "TBD" } ],
+            'PHI': [ { "date": "Thu, Sep 4", "opponent": "vs DAL", "time": "8:20 PM" }, { "date": "Sun, Sep 14", "opponent": "@ KC", "time": "4:25 PM" }, { "date": "Sun, Sep 21", "opponent": "vs LAR", "time": "1:00 PM" }, { "date": "Sun, Sep 28", "opponent": "@ TB", "time": "1:00 PM" }, { "date": "Sun, Oct 5", "opponent": "vs DEN", "time": "1:00 PM" }, { "date": "Thu, Oct 9", "opponent": "@ NYG", "time": "8:15 PM" }, { "date": "Sun, Oct 19", "opponent": "@ MIN", "time": "1:00 PM" }, { "date": "Sun, Oct 26", "opponent": "vs NYG", "time": "1:00 PM" }, { "date": "Sun, Nov 2", "opponent": "BYE", "time": "" }, { "date": "Mon, Nov 10", "opponent": "@ GB", "time": "8:15 PM" }, { "date": "Sun, Nov 16", "opponent": "vs DET", "time": "8:20 PM" }, { "date": "Sun, Nov 23", "opponent": "@ DAL", "time": "4:25 PM" }, { "date": "Fri, Nov 28", "opponent": "vs CHI", "time": "3:00 PM" }, { "date": "Sun, Dec 7", "opponent": "@ WAS", "time": "1:00 PM" }, { "date": "Mon, Dec 15", "opponent": "@ LAC", "time": "8:15 PM" }, { "date": "TBD", "opponent": "@ WAS", "time": "TBD" }, { "date": "Sun, Dec 28", "opponent": "@ BUF", "time": "4:25 PM" }, { "date": "TBD", "opponent": "vs WAS", "time": "TBD" } ],
+            'PIT': [ { "date": "Sun, Sep 7", "opponent": "@ NYJ", "time": "1:00 PM" }, { "date": "Sun, Sep 14", "opponent": "vs SEA", "time": "1:00 PM" }, { "date": "Sun, Sep 21", "opponent": "@ NE", "time": "1:00 PM" }, { "date": "Sun, Sep 28", "opponent": "vs MIN (Dublin)", "time": "9:30 AM" }, { "date": "Sun, Oct 5", "opponent": "BYE", "time": "" }, { "date": "Sun, Oct 12", "opponent": "vs CLE", "time": "1:00 PM" }, { "date": "Sun, Oct 19", "opponent": "vs LAC", "time": "8:20 PM" }, { "date": "Sun, Oct 26", "opponent": "vs GB", "time": "4:25 PM" }, { "date": "Sun, Nov 2", "opponent": "vs LV", "time": "1:00 PM" }, { "date": "Sun, Nov 9", "opponent": "@ TEN", "time": "1:00 PM" }, { "date": "Sun, Nov 16", "opponent": "vs CIN", "time": "1:00 PM" }, { "date": "Sun, Nov 23", "opponent": "@ CHI", "time": "1:00 PM" }, { "date": "Sun, Nov 30", "opponent": "vs BUF", "time": "4:25 PM" }, { "date": "Sun, Dec 7", "opponent": "@ BAL", "time": "1:00 PM" }, { "date": "Mon, Dec 15", "opponent": "vs MIA", "time": "8:15 PM" }, { "date": "Sun, Dec 21", "opponent": "@ DET", "time": "1:00 PM" }, { "date": "TBD", "opponent": "vs KC", "time": "TBD" }, { "date": "TBD", "opponent": "vs BAL", "time": "TBD" } ],
+            'SF': [ { "date": "Sun, Sep 7", "opponent": "@ SEA", "time": "4:05 PM" }, { "date": "Sun, Sep 14", "opponent": "@ NO", "time": "1:00 PM" }, { "date": "Sun, Sep 21", "opponent": "vs ARI", "time": "4:25 PM" }, { "date": "Sun, Sep 28", "opponent": "vs JAX", "time": "4:05 PM" }, { "date": "Thu, Oct 2", "opponent": "@ LAR", "time": "8:15 PM" }, { "date": "Sun, Oct 12", "opponent": "@ TB", "time": "1:00 PM" }, { "date": "Sun, Oct 19", "opponent": "vs ATL", "time": "8:20 PM" }, { "date": "Sun, Oct 26", "opponent": "@ HOU", "time": "1:00 PM" }, { "date": "Sun, Nov 2", "opponent": "vs SEA", "time": "4:05 PM" }, { "date": "Sun, Nov 9", "opponent": "BYE", "time": "" }, { "date": "Sun, Nov 16", "opponent": "@ ARI", "time": "4:05 PM" }, { "date": "Mon, Nov 24", "opponent": "vs CAR", "time": "8:15 PM" }, { "date": "Sun, Nov 30", "opponent": "@ CLE", "time": "1:00 PM" }, { "date": "Sun, Dec 7", "opponent": "vs IND", "time": "4:05 PM" }, { "date": "Sun, Dec 14", "opponent": "@ TEN", "time": "1:00 PM" }, { "date": "Sun, Dec 21", "opponent": "vs LAR", "time": "4:05 PM" }, { "date": "TBD", "opponent": "@ MIN", "time": "TBD" }, { "date": "TBD", "opponent": "vs CHI", "time": "TBD" } ],
+            'SEA': [ { "date": "Sun, Sep 7", "opponent": "vs SF", "time": "4:05 PM" }, { "date": "Sun, Sep 14", "opponent": "@ PIT", "time": "1:00 PM" }, { "date": "Sun, Sep 21", "opponent": "vs NO", "time": "4:05 PM" }, { "date": "Thu, Sep 25", "opponent": "@ ARI", "time": "8:15 PM" }, { "date": "Sun, Oct 5", "opponent": "vs TB", "time": "4:05 PM" }, { "date": "Sun, Oct 12", "opponent": "@ JAX", "time": "1:00 PM" }, { "date": "Sun, Oct 19", "opponent": "vs HOU", "time": "4:05 PM" }, { "date": "Sun, Oct 26", "opponent": "@ TEN", "time": "1:00 PM" }, { "date": "Sun, Nov 2", "opponent": "vs LAR", "time": "4:25 PM" }, { "date": "Sun, Nov 9", "opponent": "vs ARI", "time": "4:05 PM" }, { "date": "Sun, Nov 16", "opponent": "vs LAR", "time": "4:25 PM" }, { "date": "Sun, Nov 23", "opponent": "BYE", "time": "" }, { "date": "Sun, Nov 30", "opponent": "vs NE", "time": "4:25 PM" }, { "date": "Sun, Dec 7", "opponent": "@ ATL", "time": "1:00 PM" }, { "date": "Sun, Dec 14", "opponent": "@ IND", "time": "1:00 PM" }, { "date": "Sun, Dec 21", "opponent": "@ MIN", "time": "1:00 PM" }, { "date": "TBD", "opponent": "@ CAR", "time": "TBD" }, { "date": "TBD", "opponent": "@ SF", "time": "TBD" } ],
+            'TB': [ { "date": "Sun, Sep 7", "opponent": "@ ATL", "time": "1:00 PM" }, { "date": "Mon, Sep 15", "opponent": "@ HOU", "time": "7:00 PM" }, { "date": "Sun, Sep 21", "opponent": "vs NYJ", "time": "1:00 PM" }, { "date": "Sun, Sep 28", "opponent": "vs PHI", "time": "1:00 PM" }, { "date": "Sun, Oct 5", "opponent": "@ SEA", "time": "4:05 PM" }, { "date": "Sun, Oct 12", "opponent": "vs SF", "time": "1:00 PM" }, { "date": "Sun, Oct 19", "opponent": "@ DET", "time": "1:00 PM" }, { "date": "Sun, Oct 26", "opponent": "vs KC", "time": "4:25 PM" }, { "date": "Sun, Nov 2", "opponent": "@ NO", "time": "1:00 PM" }, { "date": "Sun, Nov 9", "opponent": "BYE", "time": "" }, { "date": "Sun, Nov 16", "opponent": "@ BUF", "time": "1:00 PM" }, { "date": "Sun, Nov 23", "opponent": "@ LAC", "time": "4:05 PM" }, { "date": "Sun, Nov 30", "opponent": "vs ARI", "time": "1:00 PM" }, { "date": "Sun, Dec 7", "opponent": "@ WAS", "time": "1:00 PM" }, { "date": "Thu, Dec 11", "opponent": "vs ATL", "time": "8:15 PM" }, { "date": "Sun, Dec 21", "opponent": "@ CAR", "time": "1:00 PM" }, { "date": "Sun, Dec 28", "opponent": "@ MIA", "time": "1:00 PM" }, { "date": "TBD", "opponent": "vs CAR", "time": "TBD" } ],
+            'TEN': [ { "date": "Sun, Sep 7", "opponent": "@ DEN", "time": "4:05 PM" }, { "date": "Sun, Sep 14", "opponent": "vs LAR", "time": "1:00 PM" }, { "date": "Sun, Sep 21", "opponent": "vs IND", "time": "1:00 PM" }, { "date": "Sun, Sep 28", "opponent": "@ HOU", "time": "1:00 PM" }, { "date": "Sun, Oct 5", "opponent": "@ ARI", "time": "4:05 PM" }, { "date": "Sun, Oct 12", "opponent": "@ LV", "time": "4:05 PM" }, { "date": "Sun, Oct 19", "opponent": "vs NE", "time": "1:00 PM" }, { "date": "Sun, Oct 26", "opponent": "vs SEA", "time": "1:00 PM" }, { "date": "Sun, Nov 2", "opponent": "vs JAX", "time": "1:00 PM" }, { "date": "Sun, Nov 9", "opponent": "@ JAX", "time": "4:05 PM" }, { "date": "Sun, Nov 16", "opponent": "vs HOU", "time": "1:00 PM" }, { "date": "Sun, Nov 23", "opponent": "BYE", "time": "" }, { "date": "Sun, Nov 30", "opponent": "@ IND", "time": "1:00 PM" }, { "date": "Sun, Dec 7", "opponent": "@ CLE", "time": "1:00 PM" }, { "date": "Sun, Dec 14", "opponent": "vs SF", "time": "1:00 PM" }, { "date": "Sun, Dec 21", "opponent": "vs NYJ", "time": "1:00 PM" }, { "date": "TBD", "opponent": "@ BUF", "time": "TBD" }, { "date": "TBD", "opponent": "@ MIA", "time": "TBD" } ],
+            'WAS': [ { "date": "Sun, Sep 7", "opponent": "vs NYG", "time": "1:00 PM" }, { "date": "Thu, Sep 11", "opponent": "@ GB", "time": "8:15 PM" }, { "date": "Sun, Sep 21", "opponent": "vs LV", "time": "1:00 PM" }, { "date": "Sun, Sep 28", "opponent": "@ ATL", "time": "1:00 PM" }, { "date": "Sun, Oct 5", "opponent": "@ LAC", "time": "4:25 PM" }, { "date": "Sun, Oct 12", "opponent": "vs CHI", "time": "1:00 PM" }, { "date": "Sun, Oct 19", "opponent": "@ DAL", "time": "1:00 PM" }, { "date": "Sun, Oct 26", "opponent": "BYE", "time": "" }, { "date": "Sun, Nov 2", "opponent": "vs TB", "time": "1:00 PM" }, { "date": "Sun, Nov 9", "opponent": "vs DET", "time": "1:00 PM" }, { "date": "Sun, Nov 16", "opponent": "@ MIA (Madrid)", "time": "9:30 AM" }, { "date": "Sun, Nov 23", "opponent": "@ NYG", "time": "1:00 PM" }, { "date": "Sun, Nov 30", "opponent": "vs DEN", "time": "1:00 PM" }, { "date": "Sun, Dec 7", "opponent": "vs TB", "time": "1:00 PM" }, { "date": "Sun, Dec 14", "opponent": "@ PHI", "time": "1:00 PM" }, { "date": "TBD", "opponent": "vs PHI", "time": "TBD" }, { "date": "Thu, Dec 25", "opponent": "vs DAL", "time": "1:00 PM" }, { "date": "TBD", "opponent": "@ NYG", "time": "TBD" } ]
+        };
+        
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                userId = user.uid;
+                console.log("User is signed in:", userId);
+                await checkAndLoadPlayers();
+            } else {
+                console.log("No user signed in, signing in anonymously.");
+                await signInAnonymously(auth);
+            }
+        });
+
+        searchBar.addEventListener('keyup', applyFilters);
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', () => setActiveFilter(btn.dataset.position));
+        });
+        backBtn.addEventListener('click', () => {
+            detailPage.classList.add('hidden');
+            mainPage.classList.remove('hidden');
+        });
+        profileTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                profileTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                tabContents.forEach(content => content.id === `${tab.dataset.tab}-content` ? content.classList.remove('hidden') : content.classList.add('hidden'));
+            });
+        });
+        seedDbBtn.addEventListener('click', async () => {
+            if (!userId) {
+                showError("User not authenticated. Please refresh.");
+                return;
+            }
+            seedDbBtn.disabled = true;
+            seedProgress.textContent = 'Starting setup... This may take a moment.';
+            
+            const playersToSeed = [
+                // ... (Full 500+ player list) ...
                 {"rank":1,"name":"Christian McCaffrey","team":"San Francisco 49ers","position":"RB","bye":14,"stats":"1459 Rush Yds, 14 TD, 67 Rec, 539 Rec Yds, 7 TD"},
                 {"rank":2,"name":"CeeDee Lamb","team":"Dallas Cowboys","position":"WR","bye":10,"stats":"135 Rec, 1749 Yds, 12 TD"},
                 {"rank":3,"name":"Ja'Marr Chase","team":"Cincinnati Bengals","position":"WR","bye":10,"stats":"100 Rec, 1216 Yds, 7 TD"},
@@ -654,328 +836,32 @@
                 {"rank":500,"name":"Efton Chism III","team":"New England Patriots","position":"WR","bye":14,"stats":"UDFA - Proj: 30 Rec, 400 Yds, 2 TD"}
             ];
 
-            // Pre-process players to add positional ranks
-            const posCounters = { QB: 1, RB: 1, WR: 1, TE: 1, K: 1, DST: 1 };
-            players = playersRaw.map(player => {
-                const pos_rank = posCounters[player.position];
-                posCounters[player.position]++;
-                return { ...player, pos_rank };
-            });
-
-            const playerTableBody = document.getElementById('player-data');
-            const filterButtons = document.querySelectorAll('.filter-btn');
-            const searchBar = document.getElementById('search-bar');
-            let currentPositionFilter = 'ALL';
-
-            function renderTable(playerList) {
-                playerTableBody.innerHTML = '';
-                playerList.forEach((player, index) => {
-                    const originalIndex = players.findIndex(p => p.rank === player.rank);
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td class="rank">${player.rank}</td>
-                        <td>
-                            <div class="player-name">
-                                <a href="#" class="player-link" data-player-index="${originalIndex}">${player.name}</a>
-                            </div>
-                            <div class="player-team">${player.team}</div>
-                        </td>
-                        <td class="pos-${player.position}">${player.position}</td>
-                        <td class="pos-rank">${player.pos_rank}</td>
-                        <td>${player.bye || 'N/A'}</td>
-                        <td class="stats">${player.stats}</td>
-                    `;
-                    playerTableBody.appendChild(row);
-                });
-
-                // Add event listeners to the new player links
-                document.querySelectorAll('.player-link').forEach(link => {
-                    link.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        const playerIndex = parseInt(e.target.dataset.playerIndex, 10);
-                        showPlayerProfile(players[playerIndex]);
-                    });
-                });
-            }
-
-            window.applyFilters = function() {
-                const searchTerm = searchBar.value.toLowerCase();
-                let filteredPlayers = players;
-
-                if (currentPositionFilter !== 'ALL') {
-                    filteredPlayers = filteredPlayers.filter(p => p.position === currentPositionFilter);
-                }
-
-                if (searchTerm) {
-                    filteredPlayers = filteredPlayers.filter(p => p.name.toLowerCase().includes(searchTerm));
-                }
-
-                renderTable(filteredPlayers);
-            }
-
-            window.setActiveFilter = function(position) {
-                currentPositionFilter = position;
-                filterButtons.forEach(button => {
-                    button.classList.toggle('active', button.textContent === position);
-                });
-                applyFilters();
-            }
-
-            async function showPlayerProfile(player) {
-                setLoading(true);
-                mainPage.classList.add('hidden');
-                detailPage.classList.remove('hidden');
-                hideError();
-
-                // If player is a 2025 rookie (stats contain "Proj:") or has no stats, show projected profile
-                if (player.stats.startsWith('Proj:') || player.stats === 'Backup' || player.stats.startsWith('UDFA')) {
-                    renderProjectedProfile(player);
-                    setLoading(false);
-                    return;
-                }
-
-                try {
-                    const query = `${player.name} 2024 stats`;
-                    const data = await fetchStatMuseData(query, 'nfl');
-                    if (data && data.summaryText) {
-                        renderDetailedStats(data, player);
-                    } else {
-                        // Fallback to projected profile if StatMuse fails
-                        renderProjectedProfile(player, true);
+            try {
+                const playersRef = collection(db, `artifacts/${appId}/users/${userId}/players`);
+                let batch = writeBatch(db);
+                let counter = 0;
+                for (const player of playersToSeed) {
+                    const docRef = doc(playersRef);
+                    batch.set(docRef, player);
+                    counter++;
+                    if (counter % 499 === 0) {
+                        await batch.commit();
+                        batch = writeBatch(db);
+                        seedProgress.textContent = `Seeding... ${counter} of ${playersToSeed.length} players added.`;
                     }
-                } catch (error) {
-                    console.error("Error showing player profile:", error);
-                    renderProjectedProfile(player, true); // Show projected as fallback
-                } finally {
-                    setLoading(false);
                 }
+                await batch.commit();
+                seedProgress.textContent = 'Setup complete! The app will now load.';
+                setTimeout(() => {
+                    setupContainer.classList.add('hidden');
+                    listenForPlayerUpdates();
+                }, 2000);
+            } catch (error) {
+                console.error("Error seeding database:", error);
+                seedProgress.textContent = `An error occurred during setup: ${error.message}. Please try again.`;
+                seedDbBtn.disabled = false;
             }
-            
-            function renderProjectedProfile(player, apiError = false) {
-                playerHeader.innerHTML = `<h2 class="text-3xl font-bold text-white">${player.name}</h2><p class="text-gray-400 mt-1">${player.position} | ${player.team}</p>`;
-                if (apiError) {
-                     playerHeader.innerHTML += `<p class="text-sm text-yellow-400 mt-2">Could not fetch live 2024 stats. Displaying projections.</p>`;
-                }
-                
-                // Reset and activate first tab
-                profileTabs.forEach((t, i) => t.classList.toggle('active', i === 0));
-                tabContents.forEach((c, i) => c.classList.toggle('hidden', i !== 0));
-
-                const keyStatsContent = document.getElementById('key-stats-content');
-                keyStatsContent.innerHTML = `<div class="stat-card"><p class="text-sm text-gray-400">2025 Projection</p><p class="text-xl font-bold text-white">${player.stats}</p></div>`;
-                
-                renderTeamSchedule(player.team.split(' ').pop()); // Use last word of team name for abbreviation
-                
-                document.getElementById('season-stats-content').innerHTML = `<p class="text-center text-gray-400">No professional season stats available.</p>`;
-                document.getElementById('game-log-content').innerHTML = `<p class="text-center text-gray-400">No professional game log available.</p>`;
-            }
-
-
-            // Initial render
-            applyFilters();
-
-            backBtn.addEventListener('click', () => {
-                detailPage.classList.add('hidden');
-                mainPage.classList.remove('hidden');
-            });
-
-            profileTabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    profileTabs.forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    tabContents.forEach(content => content.id === `${tab.dataset.tab}-content` ? content.classList.remove('hidden') : content.classList.add('hidden'));
-                });
-            });
-
-            // --- All other helper functions from the example go here ---
-            // (fetchStatMuseData, renderDetailedStats, renderKeyStats, renderTeamSchedule, etc.)
-            
-            function setLoading(isLoading) {
-                loaderContainer.classList.toggle('hidden', !isLoading);
-            }
-
-            function showError(message) {
-                errorText.textContent = message;
-                errorMessageContainer.classList.remove('hidden');
-            }
-
-            function hideError() {
-                errorMessageContainer.classList.add('hidden');
-            }
-            
-            function cleanPlayerName(rawName) {
-                if (!rawName) return '';
-                return rawName.replace(/\s+(Jr\.|Sr\.|[IVX]+)$/i, '').trim();
-            }
-
-            function getTableTitle(headers) {
-                const headerString = headers.join(' ').toUpperCase();
-                if (headerString === 'DATE MATCHUP TIME (ET)') return 'Schedule';
-                if (headerString.includes('DATE') && headerString.includes('OPP')) return 'Game Log';
-                if (headerString.includes('SEASON')) return 'Season Stats';
-                return 'Other';
-            }
-
-            function renderDetailedStats(data, player) {
-                playerHeader.innerHTML = `<h2 class="text-3xl font-bold text-white">${player.name} - 2024 Season</h2><p class="text-gray-400 mt-1">${data.summaryText.replace(data.summarySubject, player.name)}</p>`;
-                
-                profileTabs.forEach((t, i) => t.classList.toggle('active', i === 0));
-                tabContents.forEach((c, i) => c.classList.toggle('hidden', i !== 0));
-
-                renderKeyStats(data);
-                renderTeamSchedule(player.team.split(' ').pop());
-                
-                const seasonStatsContent = document.getElementById('season-stats-content');
-                const gameLogContent = document.getElementById('game-log-content');
-                let seasonHTML = '';
-                let gameLogHTML = '';
-
-                data.tables.forEach((tableData) => {
-                    const tableTitle = getTableTitle(tableData[0]);
-                    if (tableData.length < 2) return;
-
-                    if (tableTitle === 'Season Stats') {
-                        seasonHTML += buildTableHTML(tableData, tableTitle);
-                    } else if (tableTitle === 'Game Log') {
-                        gameLogHTML += buildTableHTML(tableData, tableTitle);
-                    }
-                });
-
-                seasonStatsContent.innerHTML = seasonHTML || '<p class="text-center text-gray-400">No season stats available.</p>';
-                gameLogContent.innerHTML = gameLogHTML || '<p class="text-center text-gray-400">No game log available.</p>';
-            }
-
-            function renderKeyStats(data) {
-                const keyStatsContent = document.getElementById('key-stats-content');
-                let keyStats = {};
-                const seasonStatsTable = data.tables.find(table => getTableTitle(table[0]) === 'Season Stats');
-
-                if (seasonStatsTable && seasonStatsTable.length > 1) {
-                    const headers = seasonStatsTable[0];
-                    const statsRow = seasonStatsTable[1];
-                    const statMap = { 'YDS': 'Yards', 'TD': 'Touchdowns', 'RTG': 'Rating', 'INT': 'Interceptions', 'RUSH YDS': 'Rush Yds', 'REC YDS': 'Rec Yds', 'REC': 'Receptions', 'ATT': 'Attempts' };
-                    
-                    headers.forEach((header, index) => {
-                        if (statMap[header]) {
-                            keyStats[statMap[header]] = statsRow[index];
-                        }
-                    });
-                }
-                
-                if (Object.keys(keyStats).length === 0) {
-                    keyStatsContent.innerHTML = '<p class="text-center text-gray-400">No key stats available.</p>';
-                    return;
-                }
-
-                let cardsHTML = '<div class="grid grid-cols-2 md:grid-cols-4 gap-4">';
-                for (const [label, value] of Object.entries(keyStats)) {
-                    cardsHTML += `<div class="stat-card"><p class="text-sm text-gray-400">${label}</p><p class="text-2xl font-bold text-white">${value}</p></div>`;
-                }
-                cardsHTML += '</div>';
-                keyStatsContent.innerHTML = cardsHTML;
-            }
-            
-            async function renderTeamSchedule(teamAbbr) {
-                const scheduleContent = document.getElementById('schedule-content');
-                const espnTeamName = Object.keys(TEAM_ABBREVIATIONS).find(key => TEAM_ABBREVIATIONS[key].includes(teamAbbr)) || teamAbbr;
-                const espnCode = ESPN_TEAM_NAMES[espnTeamName.toUpperCase()];
-
-                if (!espnCode) {
-                    scheduleContent.innerHTML = '<p class="text-center text-gray-500">Could not find team schedule.</p>';
-                    return;
-                }
-
-                scheduleContent.innerHTML = `<div class="text-center text-gray-400">Loading ${teamAbbr} schedule...</div>`;
-                
-                try {
-                    const espnUrl = `https://www.espn.com/nfl/team/schedule/_/name/${espnCode}`;
-                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(espnUrl)}`;
-                    const response = await fetch(proxyUrl);
-                    const data = await response.json();
-                    const html = data.contents;
-                    
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    
-                    const scheduleRows = doc.querySelectorAll('.Table__TR.Table__TR--sm');
-                    
-                    if (scheduleRows.length > 0) {
-                        let tableHTML = `<div class="bg-gray-900 border border-gray-700 rounded-2xl p-4 md:p-6 shadow-lg"><h3 class="text-xl font-semibold text-blue-400 mb-2">2025 Team Schedule</h3><table class="min-w-full text-sm text-left text-gray-300 stat-table rounded-lg overflow-hidden">`;
-                        tableHTML += `<thead class="text-xs text-gray-300 uppercase"><tr><th scope="col" class="px-4 py-3">Date</th><th scope="col" class="px-4 py-3">Opponent</th><th scope="col" class="px-4 py-3">Time</th><th scope="col" class="px-4 py-3">TV</th></tr></thead><tbody>`;
-
-                        scheduleRows.forEach(row => {
-                            const cells = row.querySelectorAll('td');
-                            if(cells.length > 3 && cells[2].textContent.includes(':')) { // Basic validation for a schedule row
-                                const date = cells[0]?.textContent || '';
-                                const opponentElement = cells[1].querySelector('.team-name');
-                                const opponent = opponentElement ? opponentElement.textContent : 'TBD';
-                                const time = cells[2]?.textContent || '';
-                                const tv = cells[3]?.textContent || '';
-                                
-                                tableHTML += `<tr class="border-b border-gray-700">`;
-                                tableHTML += `<td class="px-4 py-4">${date}</td>`;
-                                tableHTML += `<td class="px-4 py-4">${opponent}</td>`;
-                                tableHTML += `<td class="px-4 py-4">${time}</td>`;
-                                tableHTML += `<td class="px-4 py-4">${tv}</td>`;
-                                tableHTML += `</tr>`;
-                            }
-                        });
-
-                        tableHTML += `</tbody></table></div>`;
-                        scheduleContent.innerHTML = tableHTML;
-                    } else {
-                        scheduleContent.innerHTML = `<p class="text-center text-gray-500">Could not parse team schedule.</p>`;
-                    }
-                } catch (error) {
-                    console.error("Error fetching ESPN schedule:", error);
-                    scheduleContent.innerHTML = `<p class="text-center text-gray-500">Could not load team schedule.</p>`;
-                }
-            }
-            
-            function buildTableHTML(tableData, tableTitle) {
-                const headers = tableData[0];
-                const nameIndex = headers.indexOf('NAME');
-                const rows = tableData.slice(1);
-                let tableHTML = `<div class="overflow-x-auto mb-6"><h3 class="text-xl font-semibold text-blue-400 mb-2">${tableTitle}</h3><table class="min-w-full text-sm text-left text-gray-300 stat-table rounded-lg overflow-hidden">`;
-                tableHTML += `<thead class="text-xs text-gray-300 uppercase"><tr>`;
-                headers.forEach((header, index) => {
-                    if (index !== nameIndex) {
-                        tableHTML += `<th scope="col" class="px-4 py-3">${header}</th>`;
-                    }
-                });
-                tableHTML += `</tr></thead><tbody>`;
-                rows.forEach(row => {
-                    tableHTML += `<tr class="border-b border-gray-700">`;
-                    row.forEach((cell, cellIndex) => {
-                        if (cellIndex !== nameIndex) {
-                            tableHTML += `<td class="px-4 py-4">${cell}</td>`;
-                        }
-                    });
-                    tableHTML += `</tr>`;
-                });
-                tableHTML += `</tbody></table></div>`;
-                return tableHTML;
-            }
-
-            async function fetchStatMuseData(query, sport = 'nfl') {
-                const endpoint = 'https://betting-summary-tool-9a7f1a6b3133.herokuapp.com';
-                const formattedQuery = query.trim().replace(/\s+/g, '-').toLowerCase();
-                try {
-                    const apiUrl = `${endpoint}/api/stats?league=${sport}&query=${formattedQuery}`;
-                    const response = await fetch(apiUrl, { signal: AbortSignal.timeout(10000) });
-                    if (response.ok) {
-                        return await response.json();
-                    }
-                    return null;
-                } catch (error) {
-                    console.error("StatMuse fetch error:", error);
-                    return null;
-                }
-            }
-        } catch (error) {
-            console.error("A critical error occurred:", error);
-            document.body.innerHTML = `<div class="text-center text-red-400 p-8">A critical error occurred. Please refresh the page. Check console for details.</div>`;
-        }
+        });
     </script>
 </body>
 </html>
